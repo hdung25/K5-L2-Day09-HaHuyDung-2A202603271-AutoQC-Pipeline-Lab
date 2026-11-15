@@ -1,0 +1,29 @@
+# Quy tắc làm bài
+
+## Hình thức
+**Bài cá nhân.** Mỗi người một repo (fork/template từ repo đề). Commit dưới tên của bạn.
+
+## Sản phẩm là của bạn
+- Code trong `pipeline/checks/*.py`, `pipeline/steps/autofix.py`, `pipeline/steps/gate.py` do **bạn** viết. Không sao chép bài người khác.
+- Được dùng AI để viết script **nếu** bạn (1) mô tả đủ 4 ý như slide ([docs/PROMPTING.md](docs/PROMPTING.md)), (2) đọc và hiểu từng dòng,
+  (3) kiểm bằng unit test **và** bằng lỗi chèn sẵn. Ghi lại ít nhất 3 prompt + cách bạn kiểm trong `submission/notes/02_ai_prompts.md`.
+  Bạn phải giải thích được mọi dòng trong file mình nộp.
+- **Không** dùng `_instructor/` hay tìm đáp án lỗi cố ý của lô raw; `data/calib/MANIFEST.csv` là đáp án **được phép** dùng (đó là bộ calibration).
+
+## Tính trung thực của số liệu
+- Không sửa tay các file do script sinh ra trong `submission/reports/`, `submission/calibration/calibration_report.md|json`, `submission/results/*.json|comparison.*`.
+- **Không đổi** `gate.warn_ratio_hold`, `review.budget_images`, `review.weights`, `classes`, và không sửa `scripts/human_review_sim.py` để "đạt" Release.
+  Bạn chỉ được chỉnh các ngưỡng đánh dấu `# <-- CALIBRATE` (và `min_box_px`, `min_area_px`… nếu nêu lý do trong CALIBRATION.md).
+- **Không** đọc `data/review_reference/`, `data/test/labels`, `data/calib/MANIFEST.csv` từ trong code kiểm (`checks/`, `autofix`, `gate`) và không cố định danh sách ảnh/dòng lỗi trong code. `check_submission.py` quét tĩnh và giảng viên chấm lại trên bộ dữ liệu khác tên ảnh.
+- **Không** dùng ảnh/nhãn trong `data/test/` để huấn luyện, chọn ngưỡng, hay sửa nhãn. Tập test chỉ để đo ở bước cuối.
+- Báo **Hold** hoặc **Rework** trung thực vẫn được điểm tốt. Điều bị trừ điểm là báo Release khi số liệu không đạt, hoặc kết luận
+  "clean tốt hơn raw" khi số liệu không ủng hộ (hoặc khác biệt nằm trong độ nhiễu giữa các seed).
+- Không bịa kết quả train. File `submission/results/*.json` phải sinh từ `scripts/train_compare.py`.
+
+## Dữ liệu và giấy phép
+- Ảnh lấy từ COCO val2017 (annotations CC BY 4.0; ảnh chỉ chọn giấy phép cho phép tác phẩm phái sinh: CC BY, CC BY-SA, no known copyright, US Gov).
+  Giữ nguyên `data/ATTRIBUTION.csv`. Không đưa dữ liệu riêng tư vào repo. Không sửa/thêm/bớt ảnh trong `data/`.
+- Không commit `work/`, `.venv/`, file trọng số `*.pt`, token, API key.
+
+## Git
+- Commit nhỏ, thông điệp rõ (mỗi check một commit là tốt). Nộp theo commit cuối trước hạn.

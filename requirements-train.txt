@@ -1,0 +1,4 @@
+# Chỉ cần để TRAIN (Pha 6) hoặc pre-label ảnh mới ngoài cache. Colab đã có sẵn torch; notebook tự cài các gói này.
+-r requirements.txt
+ultralytics>=8.4
+matplotlib>=3.7
