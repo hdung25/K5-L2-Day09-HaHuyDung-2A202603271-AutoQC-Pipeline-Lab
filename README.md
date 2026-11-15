@@ -24,7 +24,7 @@ Bạn sẽ **tự viết 9 mảnh code** (7 module check + `autofix` + `gate`, x
 ## Bắt đầu
 
 ```bash
-# 1) Trên GitHub: nút "Use this template" (hoặc Fork) từ repo đề → repo PUBLIC của bạn (Colab cần public)
+# 1) Mở https://github.com/Haiduongcable/L23-Day09-AutoQC-Pipeline-Lab → nút "Use this template" → repo PUBLIC của bạn (Colab cần public)
 git clone <repo của bạn>
 cd <repo>
 python -m venv .venv
