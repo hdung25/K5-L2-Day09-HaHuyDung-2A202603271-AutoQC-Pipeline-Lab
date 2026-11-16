@@ -33,9 +33,9 @@ def no_todo(path):
 
 
 # 1. README
-first = (ROOT / "README.md").read_text(encoding="utf-8").splitlines()[0]
+first = next((l for l in (ROOT / "README.md").read_text(encoding="utf-8").splitlines() if l.startswith("# ")), "")
 if not re.match(r"# Day 09 Lab — .+: \S+ - .+", first):
-    errs.append("dòng đầu README.md phải là: '# Day 09 Lab — <Họ và tên>: <MSHV> - <Họ và tên>' (xem SUBMISSION.md)")
+    errs.append("dòng tiêu đề (dòng `# ...` đầu tiên) của README.md phải là: '# Day 09 Lab — <Họ và tên>: <MSHV> - <Họ và tên>' (xem SUBMISSION.md)")
 
 # 2. unit test
 r = subprocess.run([sys.executable, "-m", "pytest", "-q", "--tb=no", "-p", "no:cacheprovider"], cwd=ROOT, capture_output=True, text=True)

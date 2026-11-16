@@ -4,14 +4,14 @@
 Một người **một repo public**. Tên repo: `K5-L23-DAY09-<MSHV>-AutoQCPipeline` (không dấu, nối bằng `-`). Theo hướng dẫn lớp nếu giảng viên đặt quy ước khác.
 
 ## Trước khi nộp
-1. Đổi dòng đầu `README.md`: `# Day 09 Lab — <Họ và tên>: <MSHV> - <Họ và tên>`.
+1. Đổi dòng tiêu đề `# Day 09 Lab ...` của `README.md`: `# Day 09 Lab — <Họ và tên>: <MSHV> - <Họ và tên>`.
 2. Điền `submission/REPORT.md`, `notes/*.md`, `calibration/CALIBRATION.md`, `results/ANALYSIS.md` (xoá mọi dòng `TODO(học viên)`).
 3. `make check` (hoặc `python scripts/check_submission.py`) hết **LỖI**.
 4. Nộp link repo lên LMS **https://aithucchien.vinuni.edu.vn** hoặc kênh giảng viên chỉ định.
 
 ## Cấu trúc bắt buộc
 ```text
-README.md                         # dòng đầu có MSHV - Họ và tên
+README.md                         # dòng tiêu đề có MSHV - Họ và tên
 configs/pipeline.yaml             # ĐÃ calibrate (khác giá trị khởi đầu)
 pipeline/ …                       # code của bạn; pytest xanh
 submission/

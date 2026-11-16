@@ -2,7 +2,7 @@
 
 Pipeline tìm lỗi trên **toàn bộ** dữ liệu; CVAT dùng để **xem và sửa tay** vài ca. Slide Day 09, mục "Dùng công cụ kiểm có sẵn".
 
-1. Tạo project CVAT (nhãn `car, person, truck, bus` theo đúng thứ tự), tạo task từ ~20 ảnh trong `work/run/ds/images/`
+1. Tạo project CVAT: *Projects → + → Raw* dán nội dung [cvat/labels.json](../cvat/labels.json) (nhãn `car, person, truck, bus` đúng thứ tự, có thuộc tính `can_review`), tạo task từ ~20 ảnh trong `work/run/ds/images/`
    (lấy từ đầu `05_review_queue.csv`), import nhãn dạng *YOLO 1.1* (zip gồm `obj.names`, `obj.data`, `train.txt`, `obj_train_data/*.txt`).
 2. Mở **Filters** của job → *Add rule*:
    - box nhỏ: `width < 20` (hoặc `height < 20`);
