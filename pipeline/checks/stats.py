@@ -1,32 +1,31 @@
-"""CHECK 5 — Đếm box theo lớp để thấy bất thường.   (Script 5 trong slide)   ★
+# ĐÃ VIẾT SẴN (làm mẫu cho 5 module bạn tự viết): đọc, chạy test, đừng sửa — file này được ghim bằng sha1.
+"""Check 5 — đếm box theo lớp để thấy bất thường (Script 5 trong slide)."""
+from collections import Counter
 
-Test:  pytest tests/test_stats.py -q
+from ..common import WARN, Issue
 
-Cần hai hàm:
 
-1. `class_counts(ds) -> collections.Counter`: đếm số box theo TOKEN ĐẦU DÒNG (chuỗi, ví dụ "1", "93").
-   Dùng token chứ không ép int: id lạ như `93` hay `-1` phải hiện ra trong bảng đếm.
-   Bỏ qua dòng trống. (Hàm này còn được `pipeline/run.py` gọi để ghi `class_stats.csv`.)
-
-2. `run(ds, cfg)` -> list[Issue], đều severity WARN:
-
-| code        | image      | khi nào                                                               |
-|-------------|------------|-----------------------------------------------------------------------|
-| CLASS_RARE  | "<dataset>"| token lớp có < `cfg["stats"]["rare_class_min_boxes"]` box; `extra={"class": token, "n": số box}` |
-| DENSE_IMAGE | stem       | ảnh có > `cfg["stats"]["dense_image_max_boxes"]` box; `extra={"n": số box}` |
-
-"Lớp 93 chỉ có 1 box: ID đáng ngờ, kiểm ngay."
-"""
-from collections import Counter  # noqa: F401
-
-from ..common import WARN, Issue  # noqa: F401
+def _raw_ids(ds):
+    for lf in ds.label_files():
+        for _, ln in ds.read_label_lines(lf.stem) or []:
+            tok = ln.split()
+            if tok:
+                yield lf.stem, tok[0]
 
 
 def class_counts(ds) -> Counter:
-    # TODO
-    raise NotImplementedError("stats.class_counts chưa làm")
+    """Đếm số box theo token đầu dòng (cả ID lạ như '93')."""
+    return Counter(t for _, t in _raw_ids(ds))
 
 
 def run(ds, cfg):
-    # TODO
-    raise NotImplementedError("check stats chưa làm")
+    c = cfg["stats"]
+    issues = []
+    for tok, n in sorted(class_counts(ds).items()):
+        if n < c["rare_class_min_boxes"]:
+            issues.append(Issue("stats", WARN, "CLASS_RARE", "<dataset>", f"lớp {tok} chỉ có {n} box", extra={"class": tok, "n": n}))
+    per_img = Counter(s for s, _ in _raw_ids(ds))
+    for s, n in sorted(per_img.items()):
+        if n > c["dense_image_max_boxes"]:
+            issues.append(Issue("stats", WARN, "DENSE_IMAGE", s, f"{n} box trong một ảnh", extra={"n": n}))
+    return issues

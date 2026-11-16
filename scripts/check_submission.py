@@ -59,11 +59,11 @@ if pin.exists():
     try:
         import yaml
         cur_cfg = yaml.safe_load((ROOT / "configs/pipeline.yaml").read_text(encoding="utf-8"))
-        for s_, k_ in [("duplicates", "phash_dist"), ("label_format", "overflow_tol"), ("second_opinion", "conf"), ("second_opinion", "iou_loose"), ("second_opinion", "fp_conf")]:
+        for s_, k_ in [("duplicates", "phash_dist"), ("second_opinion", "conf")]:
             cur_cfg[s_].pop(k_, None)
         if fixed_cfg is not None and cur_cfg != fixed_cfg:
             diff = sorted({k for k in set(cur_cfg) | set(fixed_cfg) if cur_cfg.get(k) != fixed_cfg.get(k)})
-            errs.append(f"configs/pipeline.yaml: đã đổi mục ngoài 5 khoá `# <-- CALIBRATE` (bị cấm, RULES.md): {diff}")
+            errs.append(f"configs/pipeline.yaml: đã đổi mục ngoài 2 khoá `# <-- CALIBRATE` (bị cấm, RULES.md): {diff}")
     except Exception as e:  # noqa: BLE001
         errs.append(f"không đọc được configs/pipeline.yaml: {e}")
 else:
@@ -96,29 +96,23 @@ if s.exists():
         errs.append("còn lỗi bắt buộc trong danh sách v3 nhưng kết luận không phải Rework (gate sai)")
 
 # 4. calibration
-need("submission/calibration/calibration_report.md", "(python -m pipeline.calibrate --sweep ... --out submission/calibration)")
-no_todo("submission/calibration/CALIBRATION.md")
+need("submission/calibration/calibration_report.md", "(chạy `make calibrate`)")
 cj = ROOT / "submission/calibration/calibration.json"
-if cj.exists() and len(json.loads(cj.read_text(encoding="utf-8")).get("sweeps", {})) < 4:
-    errs.append("calibration.json có < 4 sweep: chạy `make calibrate` (đủ 5 sweep)")
+if cj.exists() and len(json.loads(cj.read_text(encoding="utf-8")).get("sweeps", {})) < 2:
+    errs.append("calibration.json có < 2 sweep: chạy `make calibrate`")
 try:
     import yaml
     cur = yaml.safe_load((ROOT / "configs/pipeline.yaml").read_text(encoding="utf-8"))
-    so = cur["second_opinion"]
-    for k, hi in (("conf", 0.85), ("fp_conf", 0.3)):
-        if so[k] > hi:
-            errs.append(f"second_opinion.{k}={so[k]} > {hi}: ngưỡng quá cao làm hàng đợi rỗng giả (Release giả). Chọn theo sweep, không theo kết luận gate")
-    if cur["duplicates"]["phash_dist"] > 20 or cur["label_format"]["overflow_tol"] > 0.05:
-        errs.append("phash_dist > 20 hoặc overflow_tol > 0.05: ngưỡng ngoài vùng hợp lý")
-    base = dict(phash=2, tol=0.02, conf=0.25)
-    if (cur["duplicates"]["phash_dist"], cur["label_format"]["overflow_tol"], cur["second_opinion"]["conf"]) == (2, 0.02, 0.25):
+    if cur["second_opinion"]["conf"] > 0.85:
+        errs.append(f"second_opinion.conf={cur['second_opinion']['conf']} > 0.85: ngưỡng quá cao làm hàng đợi rỗng giả (Release giả). Chọn theo sweep, không theo kết luận gate")
+    if cur["duplicates"]["phash_dist"] > 20:
+        errs.append("phash_dist > 20: ngưỡng ngoài vùng hợp lý")
+    if (cur["duplicates"]["phash_dist"], cur["second_opinion"]["conf"]) == (2, 0.25):
         errs.append("configs/pipeline.yaml vẫn là giá trị khởi đầu: chưa calibrate?")
 except Exception as e:  # noqa: BLE001
     errs.append(f"không đọc được configs/pipeline.yaml: {e}")
 
-# 5. notes
-for f in ["01_error_taxonomy.md", "02_ai_prompts.md"]:
-    no_todo(f"submission/notes/{f}")
+# 5. báo cáo
 no_todo("submission/REPORT.md")
 
 # 6. train so sánh
@@ -145,7 +139,6 @@ for v in ("raw", "clean"):
     elif len(by[v]) < 2:
         warns.append(f"biến thể '{v}' chỉ có {len(by[v])} seed: nên ≥ 2 để biết nhiễu")
 need("submission/results/comparison.md", "(python scripts/summarize_results.py)")
-no_todo("submission/results/ANALYSIS.md")
 
 print()
 for w in warns:

@@ -1,28 +1,34 @@
 # Báo cáo Day 09 — <Họ và tên>, <MSHV>
 
-> Xoá mọi `TODO(học viên)` và dòng gợi ý trong ngoặc. Trả lời bằng **số liệu lấy từ `submission/reports/`**, kèm mẫu số.
+> Xoá mọi `TODO(học viên)` và dòng gợi ý. Mỗi ý trả lời bằng **số lấy từ `submission/reports/`**, kèm mẫu số. Cả báo cáo ~1–2 trang.
 
 ## 1. Kết luận trước
-TODO(học viên): một đoạn: pipeline kết luận **Release / Hold / Rework**? Bao nhiêu ảnh vào, bao nhiêu ảnh ra dataset? Lý do chính.
+TODO(học viên): pipeline kết luận **Release / Hold / Rework**? Bao nhiêu ảnh vào, bao nhiêu ảnh ra dataset? Lý do chính (1–3 câu).
 
-## 2. Lỗi tìm được (từ `02_error_list_v1`)
-| Mã lỗi | Số dòng/ảnh | Ai sửa (máy/người) | Ghi chú |
+## 2. Lỗi và phân việc
+Lấy từ `02_error_list_v1` (gom theo mã lỗi). Cột "ai sửa": **máy** (autofix) hay **người** (hàng đợi); chỉ ghi những mã có mặt trong lô của bạn.
+
+| Mã lỗi | Số ảnh/dòng | Ai sửa (máy/người) | Vì sao |
 |---|---:|---|---|
 | TODO(học viên) | | | |
 
-(Thêm số ảnh bị loại ở bước 1 và lý do — `01_intake.csv`.)
+TODO(học viên): vì sao `05_review_queue.csv` xếp ảnh đầu hàng như vậy? Với ngân sách 80 ảnh, người xem được bao nhiêu lỗi ngữ nghĩa?
 
-## 3. Phân việc sửa
-TODO(học viên): vì sao `05_review_queue.csv` xếp ảnh đầu hàng như vậy? Với ngân sách 80 ảnh, bao nhiêu lỗi ngữ nghĩa thực sự được người xem? Loại ảnh nào bạn đưa lên trước và vì sao?
+## 3. Calibration (2 ngưỡng)
+| Tham số | Khởi đầu | Đã chọn | Precision / Recall (trước → sau) | Lý do (đánh đổi) |
+|---|---|---|---|---|
+| `duplicates.phash_dist` | 2 | TODO(học viên) | | |
+| `second_opinion.conf` | 0.25 | TODO(học viên) | | |
 
-## 4. Cửa chặn
-TODO(học viên): chứng minh gate chặn đúng. Ví dụ: tạm tắt `autofix` hoặc chèn một lỗi `BAD_CLASS_ID` vào `work/run/ds`, chạy lại, chỉ ra mã thoát 20 và việc **không xuất** dataset.
+TODO(học viên): **một chỗ calibration có thể đánh lừa bạn**, kèm bằng chứng từ dữ liệu của bạn (vd. mở xem vài cặp ảnh bị cho là trùng; số ảnh bị loại ở bước 1 có hợp lý không?).
 
-## 5. Điều pipeline KHÔNG bắt được
-TODO(học viên): ≥ 2 điểm mù có bằng chứng (ảnh/dòng cụ thể, hoặc số từ calibration). Gợi ý: box lỏng nhẹ, gán nhầm lớp mà model lớn cũng nhầm, ảnh trùng mức biến đổi mạnh, lỗi thuộc tính.
+## 4. Cửa chặn và điều pipeline KHÔNG bắt được
+TODO(học viên): (a) chứng minh gate chặn đúng: chèn một lỗi bắt buộc (vd. `BAD_CLASS_ID`) vào `work/run/ds`, chạy lại, chỉ ra mã thoát 20 và việc **không xuất** dataset. (b) ≥ 2 điểm mù có bằng chứng (box lỏng nhẹ, nhầm lớp mà model lớn cũng nhầm, ảnh trùng biến đổi mạnh…).
 
-## 6. Quyết định và điều kiện đổi quyết định
-TODO(học viên): quyết định cuối. Nếu là Hold/Rework: cần làm gì để thành Release? Nếu Release: rủi ro còn lại là gì?
+## 5. Train: raw vs clean
+Dán bảng từ `submission/results/comparison.md` (model, epoch, seed, số ảnh train mỗi biến thể).
 
-## 7. CVAT (bản nhẹ, bắt buộc — xem docs/CVAT_FILTER.md)
-TODO(học viên): lọc `width < 20`: ảnh/số box khớp; đối chiếu với `BOX_TINY` của pipeline (ngưỡng 12 px); 1 câu về `can_review`. Không có CVAT: nêu lý do + thay bằng script.
+TODO(học viên): chênh mAP50 (clean − raw) so với **độ lệch chuẩn giữa các seed**; kết luận **trung thực** (nằm trong nhiễu thì nói là chưa kết luận được); ≥ 2 giả thuyết giải thích (ảnh trùng/rò rỉ test trong `raw`, nhãn máy còn lại trong `clean`, test chỉ 100 ảnh…) và cách kiểm.
+
+## 6. Quyết định, CVAT, AI
+TODO(học viên): (a) quyết định cuối; nếu Hold/Rework cần làm gì để thành Release? (b) CVAT bản nhẹ: lọc `width < 20`, ảnh/số box khớp, đối chiếu `BOX_TINY` (xem docs/CVAT_FILTER.md), 1 câu về `can_review`. (c) Dùng AI viết code? Ghi 3 dòng: prompt chính, cách bạn kiểm code AI, 1 lần AI sai. Không dùng: ghi "không dùng".

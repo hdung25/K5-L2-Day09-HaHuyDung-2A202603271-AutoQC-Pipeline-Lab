@@ -27,8 +27,8 @@ second_opinion.conf=0.80  WRONG_CLASS 1.00 / 0.83 / 0.91  MISSING 0.67 / 0.75 / 
 Mỗi ô là `precision / recall / F1`. Tăng `conf`: ít cờ hơn, chắc hơn (precision ↑) nhưng bỏ sót nhiều hơn (recall ↓).
 
 ## Chọn ngưỡng thế nào
-- **Lỗi bắt buộc tự sửa/loại** (`overflow_tol`, `phash_dist`): ưu tiên **precision cao** — cờ sai nghĩa là xoá nhầm ảnh/box tốt.
-- **Cảnh báo cho người** (`second_opinion.*`): chấp nhận precision thấp hơn để recall cao, nhưng **hàng đợi lớn hơn ngân sách duyệt (80 ảnh) thì phần dư không ai xem**:
+- **Lỗi bắt buộc tự sửa/loại** (`phash_dist`): ưu tiên **precision cao** — cờ sai nghĩa là xoá nhầm ảnh/box tốt.
+- **Cảnh báo cho người** (`second_opinion.conf`): chấp nhận precision thấp hơn để recall cao, nhưng **hàng đợi lớn hơn ngân sách duyệt (80 ảnh) thì phần dư không ai xem**:
   nếu ≥ 10% ảnh còn cảnh báo chưa duyệt, gate sẽ Hold. Nhưng đừng hạ recall chỉ để hàng đợi "vừa": một hàng đợi nhỏ vì checker mù là Release giả.
 - Đừng chỉ chọn "F1 lớn nhất": hỏi *giá của một FP* và *giá của một FN* trong dự án này.
 

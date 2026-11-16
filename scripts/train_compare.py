@@ -31,8 +31,8 @@ def pick_device(req: str):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--variants", nargs="+", default=["raw", "clean"], choices=["raw", "clean", "auto", "oracle"])
-    ap.add_argument("--seeds", nargs="+", type=int, default=[0])
-    ap.add_argument("--epochs", type=int, default=40)
+    ap.add_argument("--seeds", nargs="+", type=int, default=[0, 1])
+    ap.add_argument("--epochs", type=int, default=20)
     ap.add_argument("--imgsz", type=int, default=640)
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--model", default="yolo26n.pt")

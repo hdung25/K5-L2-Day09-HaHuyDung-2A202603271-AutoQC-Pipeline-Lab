@@ -6,7 +6,7 @@ Bốn lớp của dự án, **đúng thứ tự id**: `0 car · 1 person · 2 tr
 
 | Thư mục | Ảnh | Nhãn | Dùng để |
 |---|---:|---|---|
-| `raw/` | 224 | **nhãn yolo26n (giảng viên chạy) + lỗi** (không có đáp án) | đầu vào của pipeline |
+| `raw/` | 224 | **nhãn gán sẵn + lỗi** (không có đáp án) | đầu vào của pipeline |
 | `calib/` | 39 | nhãn người + **lỗi chèn có đáp án** (`MANIFEST.csv`) | calibration (đo công cụ kiểm) |
 | `gold_val/` | 40 | nhãn người (sạch) | `val` khi train (chọn checkpoint) |
 | `test/` | 100 | nhãn người (sạch) | **chỉ** để đánh giá cuối. Không dùng để sửa nhãn/chọn ngưỡng |
@@ -14,7 +14,7 @@ Bốn lớp của dự án, **đúng thứ tự id**: `0 car · 1 person · 2 tr
 | `cache/` | — | dự đoán model đã lưu | `checker_preds.json` (yolo26l — ý kiến thứ hai cho check `second_opinion`) |
 
 ## Lô `raw` có gì?
-Nhãn: yolo26n (conf ≥ 0.25) pre-label từng ảnh, rồi một vòng gán/sửa cẩu thả làm lẫn lỗi. Có **lỗi tự nhiên** (model bỏ sót vật nhỏ, đoán nhầm xe tải/xe con…)
+Nhãn do máy gán rồi qua một vòng sửa cẩu thả nên lẫn lỗi. Có **lỗi tự nhiên** (bỏ sót vật nhỏ, nhầm xe tải/xe con…)
 và **lỗi cố ý** thuộc các nhóm dưới đây. Số lượng chính xác **không công bố** — nhiệm vụ của pipeline là tìm ra.
 
 | Nhóm | Dấu hiệu |

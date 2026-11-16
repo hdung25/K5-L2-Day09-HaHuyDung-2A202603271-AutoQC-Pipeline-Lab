@@ -1,5 +1,5 @@
-# Cấu hình pipeline. Các ngưỡng đánh dấu  # <-- CALIBRATE  là giá trị KHỞI ĐẦU chưa tốt:
-# bạn phải chỉnh bằng bằng chứng từ `python -m pipeline.calibrate` (xem GUIDE.md, Pha 4).
+# Cấu hình pipeline. HAI ngưỡng đánh dấu  # <-- CALIBRATE  là giá trị KHỞI ĐẦU chưa tốt:
+# bạn chỉnh bằng bằng chứng từ `make calibrate` (xem GUIDE.md, Bước 3). Mọi mục khác là quy tắc dự án, đã cố định.
 classes: [car, person, truck, bus]          # id 0..3 — không đổi
 
 models:
@@ -13,7 +13,7 @@ duplicates:
   phash_dist: 2            # <-- CALIBRATE  (khoảng cách Hamming tối đa để coi là "trùng gần đúng")
 
 label_format:
-  overflow_tol: 0.02       # <-- CALIBRATE  (box tràn quá mức này mới báo; đơn vị: tỉ lệ ảnh)
+  overflow_tol: 0.002      # box tràn quá mức này mới báo; đơn vị: tỉ lệ ảnh (cố định)
   min_box_px: 12           # cạnh ngắn (px) < ngưỡng => cảnh báo BOX_TINY (quy tắc dự án, KHÔNG có đáp án để calibrate)
   max_box_frac: 0.95
   dup_box_iou: 0.9
@@ -25,10 +25,10 @@ stats:
 second_opinion:            # so với model lớn hơn
   conf: 0.25               # <-- CALIBRATE  (chỉ tin dự đoán của model có conf >= giá trị này)
   min_area_px: 600         # bỏ qua dự đoán của model nhỏ hơn cỡ này (guideline: vật quá nhỏ không gán)
-  fp_conf: 0.25            # <-- CALIBRATE  box nhãn không khớp dự đoán nào (conf >= fp_conf) => POSSIBLE_FALSE_POS
+  fp_conf: 0.1             # (cố định) box nhãn không khớp dự đoán nào (conf >= fp_conf) => POSSIBLE_FALSE_POS
   iou_missing: 0.3         # dự đoán của model không khớp box nào (IoU < 0.3) => POSSIBLE_MISSING
   iou_match: 0.5           # coi là "cùng vật" khi IoU >= 0.5
-  iou_loose: 0.6           # <-- CALIBRATE  cùng vật, cùng lớp nhưng IoU < 0.6 => POSSIBLE_LOOSE_BOX
+  iou_loose: 0.5           # (cố định) cùng vật, cùng lớp nhưng IoU < 0.5 => POSSIBLE_LOOSE_BOX
 
 review:
   budget_images: 80        # người duyệt tối đa bấy nhiêu ảnh (mô phỏng bằng scripts/human_review_sim.py)

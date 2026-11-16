@@ -1,31 +1,30 @@
 # Kiến trúc pipeline
 
-Năm bước như slide Day 09 (máy: 1, 4, 5 · người: 3). Bước 2 (pre-label) **giảng viên đã làm trước khi lô tới tay bạn**: ảnh trong `data/raw` đã có nhãn từ yolo26n, bạn không chạy model gán nhãn. QC tự động là **cửa chặn** trước khi xuất.
+Các bước như slide Day 09 (máy: nhận, QC, xuất · người: gán/sửa). Lô `data/raw` tới tay bạn đã có nhãn; bạn không chạy model gán nhãn.
 
 | Bước | Vào | Ra | Ai | Code |
 |---|---|---|---|---|
-| 1 Nhận | ảnh thô `data/raw` | ảnh sạch (loại hỏng / nhỏ / trùng / rò rỉ test) | máy | `steps/intake.py` → `checks/images.py`, `checks/duplicates.py` |
-| 2 Pre-label | — | nhãn nháp (yolo26n) | model, **đã làm sẵn** | (ngoài phạm vi bài lab) |
-| 3 Gán, sửa | hàng đợi ưu tiên | nhãn đã sửa | **người** (mô phỏng) | `steps/review_queue.py`, `scripts/human_review_sim.py` |
-| 4 QC | nhãn | báo cáo lỗi + quyết định | máy | `checks/*.py`, `steps/autofix.py`, `steps/gate.py` |
-| 5 Xuất | nhãn đạt | dataset + `manifest.json` | máy | `steps/export.py` |
+| Nhận | ảnh thô `data/raw` | ảnh sạch (loại hỏng / nhỏ / trùng / rò rỉ test) | máy | `steps/intake.py` → `checks/images.py`, `checks/duplicates.py` |
+| Gán, sửa | hàng đợi ưu tiên | nhãn đã sửa | **người** (mô phỏng) | `steps/review_queue.py`, `scripts/human_review_sim.py` |
+| QC | nhãn | báo cáo lỗi + quyết định | máy | `checks/*.py`, `steps/autofix.py`, `steps/gate.py` |
+| Xuất | nhãn đạt | dataset + `manifest.json` | máy | `steps/export.py` |
 
 ## Luồng chạy của `python -m pipeline.run`
 
 ```
-raw ──▶ [1 intake] ──▶ ds/ ──▶ [4 QC vòng 1] ──▶ 02_error_list_v1   (lỗi TRƯỚC khi sửa; tên có phiên bản `_v1`, bỏ ngày so với slide để chạy lại cho kết quả giống hệt)
+raw ──▶ [intake] ──▶ ds/ ──▶ [QC vòng 1] ──▶ 02_error_list_v1   (lỗi TRƯỚC khi sửa; tên có phiên bản `_v1`, bỏ ngày so với slide để chạy lại cho kết quả giống hệt)
                                     │
                                     ▼
-                      [4 autofix]  ──▶ 03_fixes.csv
+                      [autofix]  ──▶ 03_fixes.csv
                                     │
                                     ▼
-                          [4 QC vòng 2] ──▶ 04_error_list_v2 ──▶ 05_review_queue.csv
+                          [QC vòng 2] ──▶ 04_error_list_v2 ──▶ 05_review_queue.csv
                                     │
                                     ▼
-                  [3 người duyệt, ngân sách N ảnh] ──▶ 06_review_log.csv
+                  [người duyệt, ngân sách N ảnh] ──▶ 06_review_log.csv
                                     │
                                     ▼
-                  [4 QC vòng 3 + gate] ──▶ 07_error_list_v3 + kết luận
+                  [QC vòng 3 + gate] ──▶ 07_error_list_v3 + kết luận
                           │                          │
                còn lỗi bắt buộc               không còn lỗi bắt buộc
                           ▼                          ▼

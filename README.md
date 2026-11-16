@@ -6,35 +6,24 @@
 
 <p align="center">
   <img alt="cá nhân" src="https://img.shields.io/badge/lab-cá%20nhân-0b1f3a">
-  <img alt="thời lượng" src="https://img.shields.io/badge/thời%20lượng-8–10%20giờ-ff8a3d">
+  <img alt="thời lượng" src="https://img.shields.io/badge/thời%20lượng-4–4,5%20giờ-ff8a3d">
   <img alt="ảnh" src="https://img.shields.io/badge/dữ%20liệu-224%20ảnh-12b3a8">
   <img alt="python" src="https://img.shields.io/badge/python-3.9–3.13-3776ab">
   <img alt="gpu" src="https://img.shields.io/badge/GPU-chỉ%20để%20train-2fbf71">
   <a href="https://colab.research.google.com/github/VinUni-AI20k/K5-L23-Day09-AutoQC-Pipeline-Lab/blob/main/notebooks/day09_train_compare.ipynb"><img alt="Mở trong Colab" src="https://colab.research.google.com/assets/colab-badge.svg"></a>
 </p>
 
-> **Máy kiểm quy tắc, người kiểm ý nghĩa.** Bạn xây một pipeline chạy bằng MỘT lệnh, rồi **chứng minh** (số liệu, trung thực) nó có ích.
+> **Máy kiểm quy tắc, người kiểm ý nghĩa.** Bạn xây một pipeline chạy bằng MỘT lệnh, rồi **đo** (số liệu, trung thực) xem nó có ích không.
 
 Bạn nhận một lô **224 ảnh** đã được gán nhãn sẵn. Trong lô có đủ loại lỗi:
 ảnh hỏng, ảnh trùng, ảnh rò rỉ từ tập test, file nhãn mất, ID lớp sai, box tràn ảnh, box lỏng, thiếu nhãn, gán nhầm lớp…
-Việc của bạn là **xây một pipeline tự động** — một lệnh chạy từ ảnh thô đến bộ dữ liệu sạch — rồi **chứng minh bằng thí nghiệm**
-(train trên Google Colab) rằng dữ liệu sau pipeline cho model tốt hơn dữ liệu gốc.
+Việc của bạn là **xây một pipeline tự động** — một lệnh chạy từ ảnh thô đến bộ dữ liệu sạch — rồi **đo bằng thí nghiệm**
+(train trên Google Colab) xem dữ liệu sau pipeline có cho model tốt hơn dữ liệu gốc hay không, và báo cáo trung thực.
+
+Bạn sẽ **tự viết 5 module** (3 check + `autofix` + `gate`, xem [GUIDE.md](GUIDE.md)); 4 check đơn giản đã viết sẵn làm mẫu, phần còn lại
+(orchestrator, người duyệt mô phỏng, xuất, train) đã có sẵn để bạn tập trung vào **kiểm tra chất lượng nhãn**.
 
 ![Pipeline và cửa chặn](docs/assets/pipeline.png)
-
-<details>
-<summary><b>Sơ đồ chi tiết (mermaid)</b></summary>
-
-```mermaid
-flowchart LR
-  A["Nhận dữ liệu<br/><i>máy</i>: ảnh hỏng, kích thước,<br/>trùng, rò rỉ test"] --> C["QC tự động<br/><i>máy</i>: 5 check + sửa tự động<br/>+ cửa chặn (lặp nhiều vòng)"]
-  C -->|lỗi bắt buộc| X["Rework<br/>chặn pipeline"]
-  C -->|cảnh báo| D["Gán, sửa<br/><i>người</i>: hàng đợi<br/>ưu tiên"]
-  D --> C
-  C -->|đạt cửa chặn| E["Xuất dataset<br/><i>máy</i>: manifest + version"]
-  E --> F["Train Colab<br/>raw vs clean"]
-```
-</details>
 
 ![Máy bắt gì, người bắt gì](docs/assets/machine_human.png)
 
@@ -44,17 +33,13 @@ flowchart LR
 
 224 ảnh COCO val2017 (CC BY 4.0; xem [data/ATTRIBUTION.csv](data/ATTRIBUTION.csv)): **raw 224** (cần QC) · **calib 39** (có đáp án lỗi, để chọn ngưỡng) · **gold_val 40** · **test 100** (chỉ để đo cuối). Chi tiết: [data/README.md](data/README.md).
 
-Bạn sẽ **tự viết 9 mảnh code** (7 module check + `autofix` + `gate`, xem [GUIDE.md](GUIDE.md)); phần còn lại
-(orchestrator, người duyệt mô phỏng, xuất, train) đã có sẵn để bạn tập trung vào **kiểm tra chất lượng nhãn**.
+## Bắt đầu nhanh (5 bước, ~4–4,5 giờ)
 
-## Bắt đầu nhanh (6 bước)
-
-1. Mở https://github.com/VinUni-AI20k/K5-L23-Day09-AutoQC-Pipeline-Lab → **Use this template** → repo **public** của bạn (tên: xem [SUBMISSION.md](SUBMISSION.md)), rồi `git clone`.
-2. Cài môi trường: [docs/SETUP.md](docs/SETUP.md) → `python -m pytest -q` ra **64 failed** (đúng dự kiến).
-3. Đọc [GUIDE.md](GUIDE.md) và [RULES.md](RULES.md); làm theo thứ tự: unit test xanh → `make calibrate` → `make run`.
-4. (Bản nhẹ bắt buộc) Lọc box nhỏ trong CVAT: [docs/CVAT_FILTER.md](docs/CVAT_FILTER.md), nhãn dự án ở [cvat/labels.json](cvat/labels.json).
-5. Train trên Colab: [docs/COLAB.md](docs/COLAB.md), rồi viết báo cáo.
-6. `python scripts/check_submission.py` hết LỖI → nộp.
+1. Mở https://github.com/VinUni-AI20k/K5-L23-Day09-AutoQC-Pipeline-Lab → **Use this template** → repo **public** của bạn (tên: xem [SUBMISSION.md](SUBMISSION.md)), `git clone`, cài môi trường ([docs/SETUP.md](docs/SETUP.md)): `python -m pytest -q` ra **46 failed, 18 passed** (đúng dự kiến).
+2. **Viết 5 module** theo [GUIDE.md](GUIDE.md) (TDD, ~2 giờ) đến khi `pytest` xanh hết.
+3. `make calibrate` chọn **2 ngưỡng**, thêm CVAT bản nhẹ ([docs/CVAT_FILTER.md](docs/CVAT_FILTER.md), nhãn ở [cvat/labels.json](cvat/labels.json)).
+4. `make run`, push, rồi train trên Colab ([docs/COLAB.md](docs/COLAB.md), ~20 phút chạy nền).
+5. Viết `submission/REPORT.md` (1–2 trang), `make check` hết LỖI → nộp.
 
 > **Khi nộp:** đổi dòng tiêu đề README thành `# Day 09 Lab — <Họ và tên>: <MSHV> - <Họ và tên>`.
 > Windows không có `make`: chạy thẳng lệnh `python ...` trong [Makefile](Makefile). Mã thoát `python -m pipeline.run`: 0 Release · 10 Hold · 20 Rework · 30 tạm dừng chờ người duyệt.
@@ -77,12 +62,12 @@ Slide ví dụ ngưỡng 2% ("dự án đặt trong guideline"). Ở lab, hàng 
 
 | Sản phẩm | Ở đâu |
 |---|---|
-| Bộ kiểm tự động (7 check + sửa tự động + cửa chặn), unit test xanh | `pipeline/`, `tests/` |
+| Bộ kiểm tự động (5 module bạn viết + 4 check mẫu), unit test xanh | `pipeline/`, `tests/` |
 | **Danh sách lỗi** trước / sau sửa / sau người duyệt, log các thay đổi, hàng đợi người duyệt | `submission/reports/` |
-| **Kết quả calibration**: precision/recall của công cụ, ngưỡng đã chọn và lý do | `submission/calibration/` |
+| **Kết quả calibration** (2 ngưỡng): sweep precision/recall | `submission/calibration/` |
 | Dataset đã xuất + `manifest.json` (truy vết) | `submission/export/clean_v1/` |
-| **So sánh train**: raw vs clean (nhiều seed), phân tích trung thực | `submission/results/` |
-| Báo cáo tóm tắt + quyết định Release/Hold/Rework | `submission/REPORT.md` |
+| **So sánh train**: raw vs clean (2 seed) | `submission/results/` |
+| **Một báo cáo duy nhất**: quyết định Release/Hold/Rework, phân việc, calibration, kết luận train | `submission/REPORT.md` |
 
 ## Tài liệu
 
@@ -101,7 +86,7 @@ Slide ví dụ ngưỡng 2% ("dự án đặt trong guideline"). Ở lab, hàng 
 | Train trên Colab | [docs/COLAB.md](docs/COLAB.md), [notebooks/day09_train_compare.ipynb](notebooks/day09_train_compare.ipynb) |
 | Nhãn dự án cho CVAT | [cvat/labels.json](cvat/labels.json) |
 
-Slide tham khảo: **Day 09 — Công cụ kiểm tự động & Pipeline cơ bản**. Nền tảng: Day 07 (QC, Release/Hold/Rework), Day 08 (pre-label).
+Slide tham khảo: **Day 09 — Công cụ kiểm tự động & Pipeline cơ bản**. Nền tảng: Day 07 (QC, Release/Hold/Rework).
 
 ## Bạn học được gì
 

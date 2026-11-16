@@ -7,10 +7,14 @@
  "pipeline/steps/report.py": "8fd070732b3568f782dc02ad13eced69e342b735",
  "pipeline/steps/__init__.py": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
  "pipeline/checks/__init__.py": "e0a23ad57343b1a7098108d8657177fcbb2cac9f",
+ "pipeline/checks/missing_labels.py": "bb71b13ff4a7bb147959b423c8d69aad938eebf8",
+ "pipeline/checks/class_names.py": "a412905656e29c8c5598e98e7c582e5d070e3310",
+ "pipeline/checks/images.py": "01500be3c266395b9e49f3659a08ed912311bff0",
+ "pipeline/checks/stats.py": "81fa6ff477a4969df4df0b89126674c07824f8cd",
  "pipeline/calibrate.py": "cebe2e719ae48d21f990dea95ea99739db68cfbc",
  "pipeline/common.py": "af979fbe5dcfae7a83c056a635404967da7f86fb",
  "pipeline/model_cache.py": "23440d44bdd7de5b10b9d351ed5fab2debdb851c",
- "scripts/train_compare.py": "f6958c7bf440d325dc0fadb607cad5135b525882",
+ "scripts/train_compare.py": "789ea3f152678021a18dbe40c42ef02f90100eb0",
  "scripts/materialize_dataset.py": "95e61f1a22e92dd1b0e7c6f06399159ba06f9d9d",
  "scripts/summarize_results.py": "bf1c5dac4d8f9148500d87fa36fe7178c350323e",
  "data/cache/checker_preds.json": "5e5dd52208bfb22534fbb6725e9019a1a0eb88d3",
@@ -49,6 +53,7 @@
   },
   "duplicates": {},
   "label_format": {
+   "overflow_tol": 0.002,
    "min_box_px": 12,
    "max_box_frac": 0.95,
    "dup_box_iou": 0.9
@@ -59,8 +64,10 @@
   },
   "second_opinion": {
    "min_area_px": 600,
+   "fp_conf": 0.1,
    "iou_missing": 0.3,
-   "iou_match": 0.5
+   "iou_match": 0.5,
+   "iou_loose": 0.5
   },
   "review": {
    "budget_images": 80,

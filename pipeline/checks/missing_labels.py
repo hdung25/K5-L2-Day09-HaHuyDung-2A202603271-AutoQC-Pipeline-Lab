@@ -1,23 +1,17 @@
-"""CHECK 1 — Ảnh nào thiếu file nhãn?   (Script 1 trong slide)   ★ dễ
-
-Test:  pytest tests/test_missing_labels.py -q
-
-Việc cần làm: hoàn thành `run`. Trả về list[Issue] với các mã:
-
-| code                | severity | khi nào                                              | image  |
-|---------------------|----------|------------------------------------------------------|--------|
-| MISSING_LABEL_FILE  | ERROR    | có ảnh nhưng KHÔNG có `labels/<stem>.txt`            | stem   |
-| ORPHAN_LABEL        | WARN     | có file nhãn nhưng không có ảnh                      | stem   |
-| EMPTY_LABEL         | WARN     | có file nhãn nhưng rỗng (ảnh nền? hay bị thiếu nhãn?) | stem   |
-
-Gợi ý
-- `ds.image_files()` đã xử lý đuôi .JPG/.png; `ds.label_files()`; `ds.read_label_lines(stem)` (None nếu không có file).
-- So sánh hai tập tên (stem) như slide: `anh - nhan`, `nhan - anh`.
-- Duyệt theo thứ tự đã sắp xếp để báo cáo lần nào cũng giống nhau (tái lập được).
-"""
-from ..common import ERROR, WARN, Issue  # noqa: F401
+# ĐÃ VIẾT SẴN (làm mẫu cho 5 module bạn tự viết): đọc, chạy test, đừng sửa — file này được ghim bằng sha1.
+"""Check 1 — ảnh nào thiếu file nhãn (Script 1 trong slide)."""
+from ..common import ERROR, WARN, Issue
 
 
 def run(ds, cfg):
-    # TODO: viết code ở đây
-    raise NotImplementedError("check missing_labels chưa làm")
+    issues = []
+    imgs = {p.stem for p in ds.image_files()}
+    labs = {p.stem for p in ds.label_files()}
+    for s in sorted(imgs - labs):
+        issues.append(Issue("missing_labels", ERROR, "MISSING_LABEL_FILE", s, "ảnh không có file nhãn"))
+    for s in sorted(labs - imgs):
+        issues.append(Issue("missing_labels", WARN, "ORPHAN_LABEL", s, "file nhãn không có ảnh"))
+    for s in sorted(imgs & labs):
+        if not ds.read_label_lines(s):
+            issues.append(Issue("missing_labels", WARN, "EMPTY_LABEL", s, "file nhãn rỗng: ảnh nền hay thiếu nhãn?"))
+    return issues
