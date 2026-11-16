@@ -1,4 +1,4 @@
-# CVAT: lọc box bất thường (tuỳ chọn, +2 điểm thưởng)
+# CVAT: lọc box bất thường (BẮT BUỘC bản nhẹ ~20 phút; làm sâu = +2 thưởng)
 
 Pipeline tìm lỗi trên **toàn bộ** dữ liệu; CVAT dùng để **xem và sửa tay** vài ca. Slide Day 09, mục "Dùng công cụ kiểm có sẵn".
 
@@ -12,4 +12,5 @@ Pipeline tìm lỗi trên **toàn bộ** dữ liệu; CVAT dùng để **xem và
 4. **Trước khi xoá hàng loạt** (`Ctrl+E` → *Remove filtered shapes*): đếm box khớp, `Ctrl+S`, chắc chắn bộ lọc hiển thị đúng tập cần xoá.
 5. Export YOLO 1.1, so sánh với nhãn pipeline: CVAT sửa gì mà pipeline chưa thấy?
 
-Nộp: ảnh chụp bộ lọc + 3–5 dòng nhận xét trong `REPORT.md` (mục "CVAT").
+**Bản nhẹ bắt buộc** (2 điểm mục 6 rubric): làm bước 1–2 với ≥ 1 ảnh, lọc `width < 20`, và ghi vào `REPORT.md` §7: tên ảnh khớp, số box khớp, đối chiếu với các dòng `BOX_TINY` của pipeline (cùng ảnh không? ngưỡng 12 px của pipeline vs 20 của slide), và 1 câu về `can_review` (người gán dùng thuộc tính này khi nào, pipeline dùng thông tin tương tự ở đâu?). Không có CVAT: ghi rõ lý do và thay bằng đếm bằng script, nói rõ đó là thay thế.
+**Bản sâu (+2):** duyệt ≥ 5 ảnh, kèm ảnh chụp bộ lọc và so sánh với pipeline.

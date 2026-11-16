@@ -24,5 +24,5 @@ TODO(học viên): ≥ 2 điểm mù có bằng chứng (ảnh/dòng cụ thể,
 ## 6. Quyết định và điều kiện đổi quyết định
 TODO(học viên): quyết định cuối. Nếu là Hold/Rework: cần làm gì để thành Release? Nếu Release: rủi ro còn lại là gì?
 
-## 7. CVAT (tuỳ chọn)
-TODO(học viên) hoặc ghi "không làm".
+## 7. CVAT (bản nhẹ, bắt buộc — xem docs/CVAT_FILTER.md)
+TODO(học viên): lọc `width < 20`: ảnh/số box khớp; đối chiếu với `BOX_TINY` của pipeline (ngưỡng 12 px); 1 câu về `can_review`. Không có CVAT: nêu lý do + thay bằng script.

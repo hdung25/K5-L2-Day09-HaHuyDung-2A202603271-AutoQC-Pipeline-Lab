@@ -40,8 +40,9 @@ Chấm tự động bằng `pytest` (trên máy chấm, có thêm vài ca ẩn c
 - 3: kết luận **trung thực** (không nói "tốt hơn" nếu khác biệt nằm trong nhiễu) + việc tiếp theo.
 
 ## 6. Phân loại lỗi và dùng AI (10)
-- 5: `01_error_taxonomy.md` đầy đủ 22 mã lỗi, ≥ 2 lý do tranh luận có lập luận.
-- 5: `02_ai_prompts.md`: ≥ 3 prompt đủ 4 ý, mô tả cách **kiểm** code AI (đọc lướt, chạy trên bản sao, thử trên lỗi biết trước), 1 lần AI sai và bạn phát hiện ra. Không dùng AI → ghi rõ và giải thích một quyết định thiết kế khó.
+- 4: `01_error_taxonomy.md` đầy đủ 22 mã lỗi, ≥ 2 lý do tranh luận có lập luận.
+- 2: `REPORT.md` §7 CVAT bản nhẹ ([docs/CVAT_FILTER.md](docs/CVAT_FILTER.md)): lọc box nhỏ, đối chiếu `BOX_TINY`, 1 câu về `can_review`.
+- 4: `02_ai_prompts.md`: ≥ 3 prompt đủ 4 ý, mô tả cách **kiểm** code AI (đọc lướt, chạy trên bản sao, thử trên lỗi biết trước), 1 lần AI sai và bạn phát hiện ra. Không dùng AI → ghi rõ và giải thích một quyết định thiết kế khó.
 
 ## 7. Tái lập và git (5)
 - 2: `make check` hết LỖI; repo chạy từ `git clone` + `pip install -r requirements.txt`.
@@ -54,5 +55,5 @@ Chấm tự động bằng `pytest` (trên máy chấm, có thêm vài ca ẩn c
 
 ## Thưởng (tối đa +5, không vượt 100)
 - +2: thêm một check mới (ví dụ box tiny/dense, lệch tỉ lệ khung hình, class imbalance) có test.
-- +2: duyệt tay ≥ 5 ảnh trong CVAT bằng bộ lọc ([docs/CVAT_FILTER.md](docs/CVAT_FILTER.md)), kèm ảnh chụp bộ lọc và so sánh với kết quả pipeline.
+- +2: (bản sâu) duyệt tay ≥ 5 ảnh trong CVAT bằng bộ lọc ([docs/CVAT_FILTER.md](docs/CVAT_FILTER.md)), kèm ảnh chụp bộ lọc và so sánh với kết quả pipeline.
 - +1: chạy biến thể `oracle` và giải thích khoảng cách `clean` ↔ `oracle`.

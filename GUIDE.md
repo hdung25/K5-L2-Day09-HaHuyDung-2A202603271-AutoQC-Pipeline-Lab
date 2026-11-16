@@ -110,6 +110,8 @@ Pipeline làm cả 5 bước và ghi báo cáo vào `submission/reports/`:
 Đọc báo cáo (kết luận trước, chi tiết sau — như slide). Trong `REPORT.md` ghi: bao nhiêu lỗi mỗi loại, **ai sửa** (máy hay người), quyết định Release/Hold/Rework và vì sao.
 
 Bước **người duyệt** được mô phỏng (`scripts/human_review_sim.py`): ngân sách 80 ảnh đầu hàng đợi được thay bằng nhãn người.
+> **Về "mọi nhãn nháp đều phải qua mắt người" (slide, bước 2–3):** ở đây có đánh đổi có chủ đích. Người duyệt có ngân sách 80 ảnh, xếp theo ưu tiên; phần còn lại chỉ có máy kiểm. Ảnh chưa duyệt vẫn bị tính vào tỉ lệ cảnh báo của cổng (≥ 10% là Hold), nên ngân sách không đủ thì bộ dữ liệu không được Release. Hãy nói rõ rủi ro này trong `REPORT.md` §6.
+
 Muốn duyệt bằng tay? `python -m pipeline.run --no-review` (mã thoát 30 = tạm dừng), sửa nhãn vài ảnh đầu hàng đợi ngay trong `work/run/ds/labels/` (hoặc qua CVAT, [docs/CVAT_FILTER.md](docs/CVAT_FILTER.md)), rồi `python -m pipeline.run --resume-after-review`: ảnh nào có nhãn **đổi** (so sánh sha1) mới được tính là đã duyệt, và không được vượt ngân sách 80 ảnh.
 
 ## Pha 6 — Train trên Colab: dữ liệu gốc vs dữ liệu sau pipeline
@@ -144,3 +146,5 @@ Sửa hết `LỖI`, đổi dòng tiêu đề README, đối chiếu [SUBMISSION
 | Ra Hold dù đã calibrate | ≥ 10% ảnh còn cảnh báo chưa được người duyệt (hàng đợi lớn hơn ngân sách 80): ngưỡng cảnh báo lỏng quá → calibrate lại; nếu hợp lý thì ghi Hold + lý do |
 | Colab báo thiếu `manifest.json` | bạn chưa commit/push `submission/export/clean_v1/` |
 | `ModuleNotFoundError: imagehash` | `pip install -r requirements.txt` |
+
+> **Vì sao cổng Hold ở 10% mà slide ví dụ 2%?** Slide nói rõ "ngưỡng 2% là ví dụ, dự án đặt trong guideline". Ở lab này `warn_ratio_hold = 0.10` (`configs/pipeline.yaml`, đã ghim, không đổi được) vì hàng đợi duyệt chỉ có 80 ảnh trên ~200 ảnh. Với 2% gần như mọi lô đều Hold. Trong dự án thật, ngưỡng do guideline quyết định.

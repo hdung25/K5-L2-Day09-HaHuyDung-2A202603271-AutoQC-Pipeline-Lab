@@ -65,7 +65,7 @@ python -m pytest -q                 # lúc đầu: đỏ hết (64 failed). Mụ
 | Kiến trúc pipeline, vào/ra từng bước | [docs/PIPELINE.md](docs/PIPELINE.md) |
 | Calibration là gì, đọc bảng sweep | [docs/CALIBRATION.md](docs/CALIBRATION.md) |
 | Prompt AI viết script (4 ý), kiểm code AI | [docs/PROMPTING.md](docs/PROMPTING.md) |
-| Lọc box nhỏ trong CVAT (tuỳ chọn) | [docs/CVAT_FILTER.md](docs/CVAT_FILTER.md) |
+| Lọc box nhỏ trong CVAT (bản nhẹ bắt buộc) | [docs/CVAT_FILTER.md](docs/CVAT_FILTER.md) |
 | Notebook Colab | [notebooks/day09_train_compare.ipynb](notebooks/day09_train_compare.ipynb) |
 
 Slide tham khảo: **Day 09 — Công cụ kiểm tự động & Pipeline cơ bản**. Nền tảng: Day 07 (QC, Release/Hold/Rework), Day 08 (pre-label).

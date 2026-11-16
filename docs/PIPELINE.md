@@ -13,7 +13,7 @@ Năm bước như slide Day 09 (máy: 1, 4, 5 · người: 3). Bước 2 (pre-la
 ## Luồng chạy của `python -m pipeline.run`
 
 ```
-raw ──▶ [1 intake] ──▶ ds/ ──▶ [4 QC vòng 1] ──▶ 02_error_list_v1   (lỗi TRƯỚC khi sửa)
+raw ──▶ [1 intake] ──▶ ds/ ──▶ [4 QC vòng 1] ──▶ 02_error_list_v1   (lỗi TRƯỚC khi sửa; tên có phiên bản `_v1`, bỏ ngày so với slide để chạy lại cho kết quả giống hệt)
                                     │
                                     ▼
                       [4 autofix]  ──▶ 03_fixes.csv
