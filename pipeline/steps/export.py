@@ -1,7 +1,6 @@
 """Bước 5 — Xuất bộ dữ liệu đã đạt cửa chặn, kèm manifest để truy vết (ĐÃ VIẾT SẴN)."""
 from __future__ import annotations
 
-import datetime
 import hashlib
 import json
 import shutil
@@ -30,7 +29,6 @@ def export(ds: Dataset, out_dir, name: str, decision: dict, cfg: dict) -> Path:
     (out / "data.yaml").write_text(yaml.safe_dump({"path": ".", "names": dict(enumerate(cfg["classes"]))}, allow_unicode=True), encoding="utf-8")
     manifest = dict(
         name=name,
-        created=datetime.date.today().isoformat(),
         n_images=len(stems),
         classes=cfg["classes"],
         decision=decision,

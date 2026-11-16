@@ -38,7 +38,7 @@ def run_model(weights: str, image_paths: list[Path], conf: float = 0.25, imgsz: 
 
 
 def get_preds(ds, cfg, which: str) -> dict:
-    """which = 'prelabel' (yolo26n) hoặc 'checker' (yolo26l). Trả {stem: rows}."""
+    """which = 'checker' (yolo26l — model lớn hơn dùng làm ý kiến thứ hai; dự đoán đã lưu sẵn trong cache). Trả {stem: rows}."""
     mc = cfg["models"][which]
     cache = load_cache(mc["cache"])
     need = [p for p in ds.image_files() if p.stem not in cache and ds.image_size(p.stem)]

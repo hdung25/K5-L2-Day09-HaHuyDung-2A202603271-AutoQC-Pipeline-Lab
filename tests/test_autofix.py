@@ -1,4 +1,3 @@
-import pipeline.model_cache as mc
 from pipeline.checks import label_format
 from pipeline.common import Issue
 from pipeline.steps import autofix
@@ -52,11 +51,11 @@ def test_remove_images(make_ds, cfg):
     assert ds.image_files() == [] and ds.label_files() == [] and {f["action"] for f in fx} == {"remove_image"}
 
 
-def test_missing_label_is_prelabelled(make_ds, cfg, monkeypatch):
+def test_missing_label_goes_to_human_and_no_file_is_invented(make_ds, cfg):
     ds = make_ds(images={"a": 1})
-    monkeypatch.setattr(mc, "get_preds", lambda d, c, which: {"a": [[1, 0.9, 0.5, 0.5, 0.3, 0.3]]})
     fx = autofix.fix(ds, [err("MISSING_LABEL_FILE", "a")], cfg)
-    assert lines(ds, "a") == ["1 0.500000 0.500000 0.300000 0.300000"] and fx[0]["action"] == "prelabel"
+    assert not ds.label_path("a").exists(), "không tạo file nhãn (kể cả rỗng): rỗng nghĩa là 'ảnh nền', không phải 'chưa gán'"
+    assert [(f["image"], f["action"]) for f in fx] == [("a", "needs_label")]
 
 
 def test_idempotent(make_ds, cfg):

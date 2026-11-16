@@ -1,18 +1,18 @@
 # Checkpoints — Day 09
 
-Bài cá nhân, dự kiến **4–5 giờ**; Colab chạy nền. Mốc tính từ lúc bắt đầu, là điểm **tự kiểm tra**, không phải hạn nộp.
+Bài cá nhân, dự kiến **8–10 giờ (2–3 buổi)**, đường tối thiểu ~6 giờ; Colab chạy nền. Mốc tính từ lúc bắt đầu, là điểm **tự kiểm tra**, không phải hạn nộp.
 
 | Mốc | Mục tiêu | Tự kiểm tra |
 |---|---|---|
-| 0:20 | **CP0** Chuẩn bị | `pytest` chạy được (đỏ hết), đã đọc `data/README.md`, mở xem ≥ 10 ảnh bằng `viz_labels.py` |
-| 0:45 | **CP1** Phân loại lỗi | `notes/01_error_taxonomy.md` xong: mỗi mã lỗi ghi máy hay người bắt |
-| 1:55 | **CP2** Check cú pháp | `test_missing_labels`, `test_label_format`, `test_class_names`, `test_images`, `test_duplicates`, `test_stats` xanh |
-| 2:55 | **CP3** Check ngữ nghĩa + sửa + cửa chặn | `test_second_opinion`, `test_autofix`, `test_gate` xanh; `pytest` xanh hết |
-| 3:05 | Nghỉ | |
-| 3:40 | **CP4** Calibration | chạy sweep 4 tham số; đã chọn và ghi lý do; `configs/pipeline.yaml` đã đổi |
-| 3:55 | **CP5** Pipeline một lệnh | `make run` ra đủ `submission/reports/`; đọc báo cáo, ghi quyết định |
-| 4:05 | Bắt đầu train Colab (chạy nền) | `submission/export/clean_v1/` đã commit/push |
-| 4:40 | **CP6** Báo cáo + nộp | `make check` hết LỖI; `ANALYSIS.md`, `REPORT.md` xong |
+| 0:30 | **CP0** Chuẩn bị | `pytest` chạy được (đỏ hết), đã đọc `data/README.md`, mở xem ≥ 10 ảnh bằng `viz_labels.py` |
+| 1:00 | **CP1** Phân loại lỗi | `notes/01_error_taxonomy.md` xong: mỗi mã lỗi ghi máy hay người bắt |
+| 3:00 | **CP2** Check cú pháp | `test_missing_labels`, `test_label_format`, `test_class_names`, `test_images`, `test_duplicates`, `test_stats` xanh |
+| 4:45 | **CP3** Check ngữ nghĩa + sửa + cửa chặn | `test_second_opinion`, `test_autofix`, `test_gate` xanh; `pytest` xanh hết |
+| 4:55 | Nghỉ | |
+| 5:30 | **CP4** Calibration | chạy sweep 4 tham số; đã chọn và ghi lý do; `configs/pipeline.yaml` đã đổi |
+| 6:00 | **CP5** Pipeline một lệnh | `make run` ra đủ `submission/reports/`; đọc báo cáo, ghi quyết định |
+| 6:10 | Bắt đầu train Colab (chạy nền) | `submission/export/clean_v1/` đã commit/push |
+| 7:00 | **CP6** Báo cáo + nộp | `make check` hết LỖI; `ANALYSIS.md`, `REPORT.md` xong |
 
 ## Chi tiết
 

@@ -3,7 +3,6 @@
 classes: [car, person, truck, bus]          # id 0..3 — không đổi
 
 models:
-  prelabel: {weights: yolo26n.pt, conf: 0.25, min_area_px: 300, cache: data/cache/prelabel_preds.json}
   checker:  {weights: yolo26l.pt, conf: 0.10, cache: data/cache/checker_preds.json}
 
 intake:
@@ -35,7 +34,7 @@ review:
   budget_images: 80        # người duyệt tối đa bấy nhiêu ảnh (mô phỏng bằng scripts/human_review_sim.py)
   weights: {POSSIBLE_WRONG_CLASS: 3, POSSIBLE_MISSING: 2, POSSIBLE_FALSE_POS: 2, POSSIBLE_LOOSE_BOX: 1.5,
             BOX_TINY: 0.3, BOX_HUGE: 0.5, EMPTY_LABEL: 1, DENSE_IMAGE: 0.3, FIXED_DROP_LINE: 2, FIXED_CLIP_BOX: 1,
-            PRELABELED: 1, default: 1}
+            NEEDS_LABEL: 10, default: 1}
 
 gate:
   warn_ratio_hold: 0.10    # >= 10% ảnh còn cảnh báo chưa người duyệt => Hold (slide ví dụ 2%; dự án đặt trong guideline)

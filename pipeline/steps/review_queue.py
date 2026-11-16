@@ -17,8 +17,8 @@ def build_queue(issues, fixes, image_stems, cfg):
         if f["action"] in ("drop_line", "clip_box") and f["image"] in image_stems:
             score[f["image"]] += w.get("FIXED_" + f["action"].upper(), 1.0)
             codes[f["image"]].add("FIXED_" + f["action"].upper())
-        if f["action"] == "prelabel" and f["image"] in image_stems:
-            score[f["image"]] += w.get("PRELABELED", 1.0)
-            codes[f["image"]].add("PRELABELED")
+        if f["action"] == "needs_label" and f["image"] in image_stems:     # chưa có nhãn: chỉ người mới gán được
+            score[f["image"]] += w.get("NEEDS_LABEL", 10.0)
+            codes[f["image"]].add("NEEDS_LABEL")
     rows = [dict(image=k, priority=round(v, 3), codes=";".join(sorted(codes[k]))) for k, v in score.items()]
     return sorted(rows, key=lambda r: (-r["priority"], r["image"]))

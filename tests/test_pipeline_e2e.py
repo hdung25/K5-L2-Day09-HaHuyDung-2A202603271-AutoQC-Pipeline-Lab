@@ -42,7 +42,27 @@ def test_pause_then_resume_with_human_edits(tmp_path):
     q = rows(tmp_path / "r" / "05_review_queue.csv")[:3]
     for r in q:                                            # "người" sửa: thêm một box vào ảnh
         p = tmp_path / "w" / "ds" / "labels" / f"{r['image']}.txt"
-        p.write_text(p.read_text(encoding="utf-8") + "0 0.5 0.5 0.1 0.1\n", encoding="utf-8")
+        p.write_text((p.read_text(encoding="utf-8") if p.exists() else "") + "0 0.5 0.5 0.1 0.1\n", encoding="utf-8")   # ảnh chưa có nhãn: người tạo file
     code = run.main(base + ["--resume-after-review"])
-    assert code in (0, 10)
+    assert code == 20, "3 ảnh đầu hàng đợi là ảnh CHƯA CÓ NHÃN; người mới gán 3/6 ảnh -> còn lỗi bắt buộc -> Rework (không được xuất)"
     assert json.loads((tmp_path / "r" / "08_summary.json").read_text(encoding="utf-8"))["reviewed"] == 3
+
+
+def test_blank_line_edit_does_not_count_as_review(tmp_path):
+    """Thêm dòng trống / khoảng trắng vào nhãn KHÔNG được tính là 'người đã duyệt' (chống gian lận ngân sách)."""
+    base = ["--work", str(tmp_path / "w"), "--reports", str(tmp_path / "r"), "--export-dir", str(tmp_path / "e")]
+    assert run.main(base + ["--no-review"]) == 30
+    for r in rows(tmp_path / "r" / "05_review_queue.csv")[:5]:
+        p = tmp_path / "w" / "ds" / "labels" / f"{r['image']}.txt"
+        if p.exists():
+            p.write_text(p.read_text(encoding="utf-8") + "\n\n   \n", encoding="utf-8")
+    run.main(base + ["--resume-after-review"])
+    assert json.loads((tmp_path / "r" / "08_summary.json").read_text(encoding="utf-8"))["reviewed"] == 0
+
+
+def test_export_on_rework_flag(tmp_path):
+    base = ["--work", str(tmp_path / "w"), "--reports", str(tmp_path / "r"), "--export-dir", str(tmp_path / "e"), "--budget", "0"]
+    assert run.main(base) == 20 and not (tmp_path / "e" / "clean_v1").exists()
+    assert run.main(base + ["--export-on-rework"]) == 20
+    man = json.loads((tmp_path / "e" / "clean_v1" / "manifest.json").read_text(encoding="utf-8"))
+    assert man["decision"]["decision"] == "Rework"

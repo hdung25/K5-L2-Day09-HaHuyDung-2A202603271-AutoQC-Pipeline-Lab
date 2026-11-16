@@ -73,7 +73,7 @@ def main():
                        config_sha1=hashlib.sha1((ROOT / "configs/pipeline.yaml").read_bytes()).hexdigest(), batch=a.batch, imgsz=a.imgsz, train_images=len(list((ROOT / a.work / variant / "train" / "images").iterdir())),
                        seconds=round(time.time() - t0, 1))
             (out / f"{name}.json").write_text(json.dumps(res, indent=2, ensure_ascii=False), encoding="utf-8")
-            print("=>", json.dumps(res, ensure_ascii=False), encoding="utf-8")
+            print("=>", json.dumps(res, ensure_ascii=False))
 
 
 if __name__ == "__main__":

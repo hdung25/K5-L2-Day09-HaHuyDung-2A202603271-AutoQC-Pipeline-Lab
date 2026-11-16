@@ -13,7 +13,8 @@
 ## Tính trung thực của số liệu
 - Không sửa tay các file do script sinh ra trong `submission/reports/`, `submission/calibration/calibration_report.md|json`, `submission/results/*.json|comparison.*`.
 - **Không đổi** `gate.warn_ratio_hold`, `review.budget_images`, `review.weights`, `classes`, và không sửa `scripts/human_review_sim.py` để "đạt" Release.
-  Bạn chỉ được chỉnh các ngưỡng đánh dấu `# <-- CALIBRATE` (và `min_box_px`, `min_area_px`… nếu nêu lý do trong CALIBRATION.md).
+  Bạn **chỉ** được chỉnh đúng 5 ngưỡng đánh dấu `# <-- CALIBRATE`; mọi mục khác của `configs/pipeline.yaml` là quy tắc dự án cố định (`make check` so sánh cả file).
+  Không sửa `tests/`, `data/` và các file "ĐÃ VIẾT SẴN" (`make check` so sha1 các file đã viết sẵn, `tests/`, cache và MANIFEST; ảnh/nhãn trong `data/` giảng viên đối chiếu khi chấm). Giảng viên chấm bằng bản `check_submission.py` của mình và đọc code của bạn, không chỉ tin vào bản trong repo.
 - **Không** đọc `data/review_reference/`, `data/test/labels`, `data/calib/MANIFEST.csv` từ trong code kiểm (`checks/`, `autofix`, `gate`) và không cố định danh sách ảnh/dòng lỗi trong code. `check_submission.py` quét tĩnh và giảng viên chấm lại trên bộ dữ liệu khác tên ảnh.
 - **Không** dùng ảnh/nhãn trong `data/test/` để huấn luyện, chọn ngưỡng, hay sửa nhãn. Tập test chỉ để đo ở bước cuối.
 - Báo **Hold** hoặc **Rework** trung thực vẫn được điểm tốt. Điều bị trừ điểm là báo Release khi số liệu không đạt, hoặc kết luận

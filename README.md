@@ -1,16 +1,16 @@
 # Day 09 Lab — Pipeline kiểm nhãn tự động
 
-**Bài cá nhân · 4–5 giờ (train Colab chạy nền trong lúc bạn viết báo cáo) · Python · dữ liệu 4 lớp xe/người · model yolo26n**
+**Bài cá nhân · ~8–10 giờ (tối thiểu ~6 giờ), nên chia 2–3 buổi (train Colab chạy nền trong lúc bạn viết báo cáo) · Python · dữ liệu 4 lớp xe/người · model yolo26n**
 
-Bạn nhận một lô **224 ảnh** đã có nhãn (do **yolo26n** pre-label rồi qua tay một vòng gán/sửa cẩu thả). Trong lô có đủ loại lỗi:
+Bạn nhận một lô **224 ảnh** đã được gán nhãn sẵn (giảng viên chạy **yolo26n** để pre-label, rồi qua một vòng gán/sửa cẩu thả — bạn **không** chạy model này). Trong lô có đủ loại lỗi:
 ảnh hỏng, ảnh trùng, ảnh rò rỉ từ tập test, file nhãn mất, ID lớp sai, box tràn ảnh, box lỏng, thiếu nhãn, gán nhầm lớp…
 Việc của bạn là **xây một pipeline tự động** — một lệnh chạy từ ảnh thô đến bộ dữ liệu sạch — rồi **chứng minh bằng thí nghiệm**
 (train trên Google Colab) rằng dữ liệu sau pipeline cho model tốt hơn dữ liệu gốc.
 
 ```mermaid
 flowchart LR
-  A["1 · Nhận dữ liệu<br/><i>máy</i>: ảnh hỏng, kích thước,<br/>trùng, rò rỉ test"] --> B["2 · Pre-label<br/><i>model</i>: yolo26n<br/>+ sửa lỗi tự động"]
-  B --> C["4 · QC tự động<br/><i>máy</i>: 5 check + cửa chặn<br/>(lặp nhiều vòng)"]
+  P["2 · Pre-label yolo26n<br/><i>giảng viên đã chạy</i><br/>(lô tới tay bạn đã có nhãn)"] -.-> A
+  A["1 · Nhận dữ liệu<br/><i>máy</i>: ảnh hỏng, kích thước,<br/>trùng, rò rỉ test"] --> C["4 · QC tự động<br/><i>máy</i>: 5 check + sửa tự động<br/>+ cửa chặn (lặp nhiều vòng)"]
   C -->|lỗi bắt buộc| X["Rework<br/>chặn pipeline"]
   C -->|cảnh báo| D["3 · Gán, sửa<br/><i>người</i>: hàng đợi<br/>ưu tiên"]
   D --> C
@@ -19,7 +19,7 @@ flowchart LR
 ```
 
 Bạn sẽ **tự viết 9 mảnh code** (7 module check + `autofix` + `gate`, xem [GUIDE.md](GUIDE.md)); phần còn lại
-(orchestrator, pre-label, người duyệt mô phỏng, xuất, train) đã có sẵn để bạn tập trung vào **kiểm tra chất lượng nhãn**.
+(orchestrator, người duyệt mô phỏng, xuất, train) đã có sẵn để bạn tập trung vào **kiểm tra chất lượng nhãn**.
 
 ## Bắt đầu
 
@@ -30,7 +30,7 @@ cd <repo>
 python -m venv .venv
 source .venv/bin/activate           # Windows: .venv\Scripts\activate
 pip install -r requirements.txt      # nhẹ, KHÔNG cần torch; chỉ khi train cục bộ mới cần requirements-train.txt
-python -m pytest -q                 # lúc đầu: đỏ hết (61 failed). Mục tiêu: xanh hết.
+python -m pytest -q                 # lúc đầu: đỏ hết (64 failed). Mục tiêu: xanh hết.
 ```
 
 > Windows: không có `make` → chạy thẳng các lệnh `python ...` trong [Makefile](Makefile); đặt `set PYTHONUTF8=1` (PowerShell: `$env:PYTHONUTF8=1`) trước khi chạy để ghi tiếng Việt đúng.

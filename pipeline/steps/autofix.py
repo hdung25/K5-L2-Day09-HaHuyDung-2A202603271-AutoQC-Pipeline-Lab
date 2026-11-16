@@ -10,7 +10,7 @@ và trả về danh sách thay đổi; mỗi phần tử có khoá: image, line,
 |------------------------------------------------|---------------------------------------------|------------------|
 | BAD_FORMAT, BAD_CLASS_ID, BOX_ZERO, DUP_BOX    | xoá dòng đó khỏi file nhãn                  | "drop_line"      |
 | BOX_OUT_OF_IMAGE                               | cắt box về trong [0,1] (giữ nguyên lớp)     | "clip_box"       |
-| MISSING_LABEL_FILE                             | gọi `prelabel_images(ds, [stems], cfg)`     | "prelabel"       |
+| MISSING_LABEL_FILE                             | KHÔNG sửa file (máy không thể bịa nhãn): ghi 1 dòng fix, before="(không có file)", after="chuyển người gán" | "needs_label" |
 | BAD_CLASS_NAME                                 | ghi lại `names` trong data.yaml đúng `cfg["classes"]` | "rename_classes" |
 | DUP_IMAGE_*, LEAK_TEST, CORRUPT_IMAGE, BAD_SIZE| xoá ảnh + nhãn khỏi `ds`                    | "remove_image"   |
 
@@ -19,9 +19,11 @@ Bẫy cần nghĩ tới (có test cho từng cái)
   Gom theo file, rồi ghi lại MỘT lần.
 - Sau khi cắt, box có thể không còn diện tích (nằm hẳn ngoài ảnh): lúc đó xoá dòng thay vì ghi box rỗng.
 - Không động tới lỗi WARN (cảnh báo là việc của người). Không sửa file ở `data/raw/` — chỉ sửa `ds`.
-- Chạy lần 2 trên dữ liệu đã sửa phải không làm gì thêm (idempotent).
+- Chạy lần 2 trên dữ liệu đã sửa phải không làm gì thêm (idempotent) — NGOẠI LỆ duy nhất: `needs_label` được ghi lại mỗi lần còn lỗi `MISSING_LABEL_FILE` (vì ảnh vẫn chưa có nhãn).
 
-Gợi ý: `from .prelabel import prelabel_images` (đã viết sẵn), `yaml.safe_load / safe_dump`.
+- `needs_label` KHÔNG tạo file nhãn rỗng (rỗng = "ảnh nền", khác với "chưa gán"). `review_queue` sẽ đẩy ảnh này lên đầu hàng đợi cho người.
+
+Gợi ý: `yaml.safe_load / safe_dump`.
 """
 from collections import defaultdict  # noqa: F401
 

@@ -34,7 +34,7 @@ def no_todo(path):
 
 # 1. README
 first = (ROOT / "README.md").read_text(encoding="utf-8").splitlines()[0]
-if not re.match(r"# Day 09 Lab — .+: \d+ - .+", first):
+if not re.match(r"# Day 09 Lab — .+: \S+ - .+", first):
     errs.append("dòng đầu README.md phải là: '# Day 09 Lab — <Họ và tên>: <MSHV> - <Họ và tên>' (xem SUBMISSION.md)")
 
 # 2. unit test
@@ -46,24 +46,30 @@ if r.returncode != 0:
 
 # 2b. file/giá trị KHÔNG được đổi (RULES.md) + không đọc đáp án
 def sha1(p):
-    return hashlib.sha1(Path(p).read_bytes()).hexdigest()
+    return hashlib.sha1(Path(p).read_bytes().replace(b"\r\n", b"\n")).hexdigest()    # chuẩn hoá CRLF (Windows) -> LF
 
 
 pin = ROOT / "scripts/_protected.json"
 if pin.exists():
-    for f, h in json.loads(pin.read_text(encoding="utf-8")).items():
+    pinned = json.loads(pin.read_text(encoding="utf-8"))
+    fixed_cfg = pinned.pop("__config_fixed__", None)
+    for f, h in pinned.items():
         if not (ROOT / f).exists() or sha1(ROOT / f) != h:
-            errs.append(f"{f} bị sửa so với bản đề (RULES.md: không sửa file đã viết sẵn)")
-try:
-    import yaml
-    c0 = yaml.safe_load((ROOT / "configs/pipeline.yaml").read_text(encoding="utf-8"))
-    if c0["gate"]["warn_ratio_hold"] != 0.10 or c0["review"]["budget_images"] != 80 or c0["classes"] != ["car", "person", "truck", "bus"] \
-            or c0["review"]["weights"] != {"POSSIBLE_WRONG_CLASS": 3, "POSSIBLE_MISSING": 2, "POSSIBLE_FALSE_POS": 2, "POSSIBLE_LOOSE_BOX": 1.5, "BOX_TINY": 0.3,
-                                          "BOX_HUGE": 0.5, "EMPTY_LABEL": 1, "DENSE_IMAGE": 0.3, "FIXED_DROP_LINE": 2, "FIXED_CLIP_BOX": 1, "PRELABELED": 1, "default": 1}:
-        errs.append("configs/pipeline.yaml: đã đổi gate.warn_ratio_hold / review.budget_images / review.weights / classes (bị cấm)")
-except Exception:  # noqa: BLE001
-    pass
-for f in list((ROOT / "pipeline/checks").glob("*.py")) + [ROOT / "pipeline/steps/autofix.py", ROOT / "pipeline/steps/gate.py"]:
+            errs.append(f"{f} bị sửa so với bản đề (RULES.md: không sửa file đã viết sẵn / test / dữ liệu)")
+    try:
+        import yaml
+        cur_cfg = yaml.safe_load((ROOT / "configs/pipeline.yaml").read_text(encoding="utf-8"))
+        for s_, k_ in [("duplicates", "phash_dist"), ("label_format", "overflow_tol"), ("second_opinion", "conf"), ("second_opinion", "iou_loose"), ("second_opinion", "fp_conf")]:
+            cur_cfg[s_].pop(k_, None)
+        if fixed_cfg is not None and cur_cfg != fixed_cfg:
+            diff = sorted({k for k in set(cur_cfg) | set(fixed_cfg) if cur_cfg.get(k) != fixed_cfg.get(k)})
+            errs.append(f"configs/pipeline.yaml: đã đổi mục ngoài 5 khoá `# <-- CALIBRATE` (bị cấm, RULES.md): {diff}")
+    except Exception as e:  # noqa: BLE001
+        errs.append(f"không đọc được configs/pipeline.yaml: {e}")
+else:
+    warns.append("thiếu scripts/_protected.json: không kiểm được file đề/cấu hình cố định")
+prot = set(json.loads(pin.read_text(encoding="utf-8"))) if pin.exists() else set()
+for f in [p for p in (ROOT / "pipeline").rglob("*.py") if str(p.relative_to(ROOT)) not in prot]:
     t = f.read_text(encoding="utf-8")
     for bad in ("review_reference", "MANIFEST", "answer_key", "data/test", "data/calib", "gold_val"):
         if bad in t and not (f.name == "duplicates.py" and bad in ("data/test", "gold_val")):
@@ -98,6 +104,12 @@ if cj.exists() and len(json.loads(cj.read_text(encoding="utf-8")).get("sweeps", 
 try:
     import yaml
     cur = yaml.safe_load((ROOT / "configs/pipeline.yaml").read_text(encoding="utf-8"))
+    so = cur["second_opinion"]
+    for k, hi in (("conf", 0.85), ("fp_conf", 0.3)):
+        if so[k] > hi:
+            errs.append(f"second_opinion.{k}={so[k]} > {hi}: ngưỡng quá cao làm hàng đợi rỗng giả (Release giả). Chọn theo sweep, không theo kết luận gate")
+    if cur["duplicates"]["phash_dist"] > 20 or cur["label_format"]["overflow_tol"] > 0.05:
+        errs.append("phash_dist > 20 hoặc overflow_tol > 0.05: ngưỡng ngoài vùng hợp lý")
     base = dict(phash=2, tol=0.02, conf=0.25)
     if (cur["duplicates"]["phash_dist"], cur["label_format"]["overflow_tol"], cur["second_opinion"]["conf"]) == (2, 0.02, 0.25):
         errs.append("configs/pipeline.yaml vẫn là giá trị khởi đầu: chưa calibrate?")

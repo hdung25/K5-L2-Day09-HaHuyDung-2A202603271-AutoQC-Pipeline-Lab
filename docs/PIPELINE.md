@@ -1,11 +1,11 @@
 # Kiến trúc pipeline
 
-Năm bước như slide Day 09 (máy: 1, 2, 4, 5 · người: 3). QC tự động là **cửa chặn** trước khi xuất.
+Năm bước như slide Day 09 (máy: 1, 4, 5 · người: 3). Bước 2 (pre-label) **giảng viên đã làm trước khi lô tới tay bạn**: ảnh trong `data/raw` đã có nhãn từ yolo26n, bạn không chạy model gán nhãn. QC tự động là **cửa chặn** trước khi xuất.
 
 | Bước | Vào | Ra | Ai | Code |
 |---|---|---|---|---|
 | 1 Nhận | ảnh thô `data/raw` | ảnh sạch (loại hỏng / nhỏ / trùng / rò rỉ test) | máy | `steps/intake.py` → `checks/images.py`, `checks/duplicates.py` |
-| 2 Pre-label | ảnh thiếu nhãn | nhãn nháp (yolo26n) | model | `steps/prelabel.py`, gọi từ `steps/autofix.py` |
+| 2 Pre-label | — | nhãn nháp (yolo26n) | model, **đã làm sẵn** | (ngoài phạm vi bài lab) |
 | 3 Gán, sửa | hàng đợi ưu tiên | nhãn đã sửa | **người** (mô phỏng) | `steps/review_queue.py`, `scripts/human_review_sim.py` |
 | 4 QC | nhãn | báo cáo lỗi + quyết định | máy | `checks/*.py`, `steps/autofix.py`, `steps/gate.py` |
 | 5 Xuất | nhãn đạt | dataset + `manifest.json` | máy | `steps/export.py` |
@@ -16,7 +16,7 @@ Năm bước như slide Day 09 (máy: 1, 2, 4, 5 · người: 3). QC tự độn
 raw ──▶ [1 intake] ──▶ ds/ ──▶ [4 QC vòng 1] ──▶ 02_error_list_v1   (lỗi TRƯỚC khi sửa)
                                     │
                                     ▼
-                      [2 autofix + pre-label]  ──▶ 03_fixes.csv
+                      [4 autofix]  ──▶ 03_fixes.csv
                                     │
                                     ▼
                           [4 QC vòng 2] ──▶ 04_error_list_v2 ──▶ 05_review_queue.csv
@@ -44,7 +44,7 @@ Thư mục làm việc `work/run/ds/` là **bản sao**: pipeline không bao gi�
 | `DUP_IMAGE_EXACT` | E | duplicates | trùng từng byte (md5) | "Hai ảnh giống hệt khác tên" |
 | `DUP_IMAGE_NEAR` | E | duplicates | trùng gần đúng (perceptual hash) | "Ảnh thu nhỏ 90%" |
 | `LEAK_TEST` | E | duplicates | ảnh trùng với tập test/val | "Metric đẹp giả" |
-| `MISSING_LABEL_FILE` | E | missing_labels | có ảnh, không có `.txt` | "Ảnh 042 không có file .txt" |
+| `MISSING_LABEL_FILE` | E | missing_labels | có ảnh, không có `.txt` (máy không bịa nhãn: `autofix` ghi `needs_label`, người gán) | "Ảnh 042 không có file .txt" |
 | `BAD_FORMAT` | E | label_format | dòng không đủ 5 cột số | "Dòng nhãn thiếu cột" |
 | `BAD_CLASS_ID` | E | label_format | ID lớp ngoài 0..3 | "ID lớp 93" |
 | `BOX_ZERO` | E | label_format | rộng hoặc cao bằng 0 | "Box rộng hoặc cao bằng 0" |

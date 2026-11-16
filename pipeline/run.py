@@ -1,9 +1,9 @@
 """Orchestrator: chạy cả pipeline 5 bước bằng MỘT lệnh (ĐÃ VIẾT SẴN — đọc kỹ để hiểu luồng).
 
-    python -m pipeline.run                       # 1 lệnh: nhận → pre-label/sửa → QC → hàng đợi → người duyệt (mô phỏng) → QC → cửa chặn → xuất
+    python -m pipeline.run                       # 1 lệnh: nhận → QC → sửa tự động → QC → hàng đợi → người duyệt (mô phỏng) → QC → cửa chặn → xuất
     python -m pipeline.run --no-review           # dừng sau khi sinh hàng đợi (để người thật duyệt) -> mã thoát 30 (TẠM DỪNG)
-    python -m pipeline.run --resume-after-review # chạy tiếp: ảnh có nhãn ĐỔI so với lúc dừng (băm sha1) được tính là đã duyệt
-    python -m pipeline.run --budget 0 --export-name clean_auto   # thí nghiệm: không có người duyệt (biến thể `auto` khi train)
+    python -m pipeline.run --resume-after-review # chạy tiếp: ảnh có nhãn ĐỔI nội dung so với lúc dừng (băm sha1 sau chuẩn hoá) được tính là đã duyệt
+    python -m pipeline.run --budget 0 --drop-unlabeled --export-name clean_auto --reports work/reports_auto   # thí nghiệm (BẮT BUỘC --reports riêng, kẻo ghi đè submission/reports): không có người duyệt (biến thể `auto` khi train)
 
 Mã thoát (để CI / Makefile dùng): 0 = Release, 10 = Hold, 20 = Rework, 30 = tạm dừng chờ người duyệt, 1 = script lỗi.
 """
@@ -39,8 +39,15 @@ def sha(p: Path) -> str:
     return hashlib.sha1(p.read_bytes()).hexdigest() if p.exists() else ""
 
 
+def nsha(p: Path) -> str:
+    """sha1 của nội dung nhãn đã chuẩn hoá (bỏ dòng trống, khoảng trắng thừa): thêm dòng trống KHÔNG tính là 'đã duyệt'."""
+    if not p.exists():
+        return ""
+    return hashlib.sha1("\n".join(" ".join(l.split()) for l in p.read_text(encoding="utf-8", errors="replace").splitlines() if l.strip()).encode()).hexdigest()
+
+
 def snapshot(ds: Dataset) -> dict:
-    return {p.stem: sha(ds.label_path(p.stem)) for p in ds.image_files()}
+    return {p.stem: nsha(ds.label_path(p.stem)) for p in ds.image_files()}
 
 
 def write_csv(path, rows, cols):
@@ -60,6 +67,10 @@ def main(argv=None):
     ap.add_argument("--config", default="configs/pipeline.yaml")
     ap.add_argument("--no-review", action="store_true", help="dừng sau khi sinh hàng đợi duyệt (mã thoát 30)")
     ap.add_argument("--resume-after-review", action="store_true")
+    ap.add_argument("--export-on-rework", action="store_true",
+                    help="vẫn xuất bản NHÁP khi kết luận Rework (manifest ghi decision=Rework) để bạn còn train so sánh; KHÔNG phải bản phát hành")
+    ap.add_argument("--drop-unlabeled", action="store_true",
+                    help="THÍ NGHIỆM (không người duyệt): loại ảnh vẫn chưa có file nhãn sau bước duyệt, thay vì để pipeline Rework")
     ap.add_argument("--budget", type=int, help="ngân sách người duyệt (chỉ được NHỎ HƠN hoặc bằng cấu hình), dùng cho thí nghiệm")
     a = ap.parse_args(argv)
 
@@ -76,7 +87,7 @@ def main(argv=None):
 
     if not a.resume_after_review:
         # dọn kết quả cũ: một lần chạy Rework không được để lại export của lần trước
-        for f in list(rep.glob("0[1-8]_*")) + [rep / "class_stats.csv"]:
+        for f in list(rep.glob("0[1-8]*")) + [rep / "class_stats.csv"]:
             f.unlink(missing_ok=True)
         shutil.rmtree(ROOT / a.export_dir / a.export_name, ignore_errors=True)
         if work.exists():
@@ -97,8 +108,8 @@ def main(argv=None):
         n_err1 = sum(i.severity == ERROR for i in issues1)
         log(f"          {n_err1} lỗi bắt buộc, {len(issues1) - n_err1} cảnh báo")
 
-        # ---- Bước 2: pre-label ảnh thiếu nhãn + sửa tự động lỗi bắt buộc
-        log("Bước 2/5  Pre-label ảnh thiếu nhãn + sửa tự động lỗi bắt buộc")
+        # ---- Sửa tự động lỗi bắt buộc (bước 2 "pre-label" đã diễn ra TRƯỚC khi lô tới tay bạn: giảng viên chạy yolo26n)
+        log("Bước 4/5  Sửa tự động lỗi bắt buộc (ảnh chưa có nhãn -> chuyển người gán)")
         fixes = autofix.fix(ds, issues1, cfg)
         write_csv(rep / "03_fixes.csv", fixes, ["image", "line", "action", "before", "after"])
         log(f"          {len(fixes)} thay đổi -> 03_fixes.csv")
@@ -129,7 +140,7 @@ def main(argv=None):
         if len(reviewed) > budget:
             log(f"LỖI: {len(reviewed)} ảnh bị đổi nhãn > ngân sách duyệt {budget}")
             return 1
-        write_csv(rep / "06_review_log.csv", [dict(image=k, result="đã duyệt: nhãn đổi (sha1)", codes="") for k in reviewed], ["image", "result", "codes"])
+        write_csv(rep / "06_review_log.csv", [dict(image=k, result="đã duyệt: nhãn đổi nội dung (sha1)", codes="") for k in reviewed], ["image", "result", "codes"])
         log(f"Bước 3/5  Người duyệt (thật): {len(reviewed)} ảnh có nhãn đã đổi")
     (work / "reviewed.txt").write_text("\n".join(reviewed) + "\n", encoding="utf-8")
 
@@ -137,6 +148,14 @@ def main(argv=None):
     ds = Dataset(ds_dir, cfg["classes"])
     stems = {p.stem for p in ds.image_files()}
     log("Bước 4/5  QC tự động — vòng 3 (sau người duyệt) + cửa chặn")
+    if a.drop_unlabeled:
+        dropped = [p.stem for p in ds.image_files() if not ds.label_path(p.stem).exists()]
+        for s in dropped:
+            ds.image_path(s).unlink()
+        write_csv(rep / "03c_dropped_unlabeled.csv", [dict(image=s, reason="chưa có nhãn, không có người gán (--drop-unlabeled)") for s in dropped], ["image", "reason"])
+        log(f"          --drop-unlabeled: loại {len(dropped)} ảnh chưa có nhãn -> 03c_dropped_unlabeled.csv")
+        ds = Dataset(ds_dir, cfg["classes"])
+        stems = {p.stem for p in ds.image_files()}
     issues3 = qc(ds, cfg)
     if any(i.severity == ERROR for i in issues3):         # người duyệt cũng có thể để lại lỗi cú pháp: máy sửa lại một vòng
         fixes2 = autofix.fix(ds, issues3, cfg)
@@ -154,10 +173,10 @@ def main(argv=None):
 
     # ---- Bước 5: xuất (chỉ khi không Rework)
     exported = None
-    if verdict["decision"] != "Rework":
+    if verdict["decision"] != "Rework" or a.export_on_rework:
         exported = export.export(ds, ROOT / a.export_dir, a.export_name, verdict, cfg)
         where = exported.relative_to(ROOT) if exported.is_relative_to(ROOT) else exported
-        note = "bản phát hành" if verdict["decision"] == "Release" else "bản NHÁP để thử nghiệm — Hold: CHƯA được phát hành"
+        note = "bản phát hành" if verdict["decision"] == "Release" else f"bản NHÁP để thử nghiệm — {verdict['decision']}: CHƯA được phát hành"
         log(f"Bước 5/5  Xuất dataset: {where}  ({note})")
     else:
         log("Bước 5/5  KHÔNG xuất: còn lỗi bắt buộc (Rework) — trả về bước 3")

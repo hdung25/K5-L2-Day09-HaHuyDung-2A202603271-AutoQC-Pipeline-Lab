@@ -36,4 +36,5 @@ Mỗi ô là `precision / recall / F1`. Tăng `conf`: ít cờ hơn, chắc hơn
 1. Calib chỉ 39 ảnh: ô nào chỉ có 2–5 lỗi chèn thì precision/recall nhảy từng bước 20–50%.
 2. Lỗi chèn là **lỗi dễ hình dung**. Lỗi thật hiếm khi sạch sẽ như vậy.
 3. Ngưỡng tối ưu cho calib chưa chắc tối ưu cho raw. **Luôn mở xem** vài kết quả trên raw (`viz_labels.py`), đặc biệt các cặp ảnh bị cho là trùng.
-4. Có lỗi mà không ngưỡng nào bắt được (vd. ảnh bị cắt 80% rồi thu nhỏ): ghi vào báo cáo như một **điểm mù đã biết**.
+4. Lỗi chèn trong calib **không giống hệt** lỗi tự nhiên trong raw: calib dựng từ nhãn người (sạch), raw từ nhãn model; các lỗi `WRONG_CLASS` trong calib chủ yếu là person→car, còn raw nghiêng về car/truck/bus; calib **không có** ca `LEAK_TEST`. Đừng tin recall trên calib như recall trên raw.
+5. Có lỗi mà không ngưỡng nào bắt được (vd. ảnh bị cắt 80% rồi thu nhỏ): ghi vào báo cáo như một **điểm mù đã biết**.

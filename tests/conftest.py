@@ -20,8 +20,7 @@ CFG = {
     "stats": {"rare_class_min_boxes": 3, "dense_image_max_boxes": 5},
     "second_opinion": {"conf": 0.5, "min_area_px": 600, "fp_conf": 0.25, "iou_missing": 0.3, "iou_match": 0.5, "iou_loose": 0.6},
     "gate": {"warn_ratio_hold": 0.10},
-    "models": {"prelabel": {"weights": "yolo26n.pt", "conf": 0.25, "min_area_px": 300, "cache": "none.json"},
-               "checker": {"weights": "yolo26l.pt", "conf": 0.1, "cache": "none.json"}},
+    "models": {"checker": {"weights": "yolo26l.pt", "conf": 0.1, "cache": "none.json"}},
 }
 
 

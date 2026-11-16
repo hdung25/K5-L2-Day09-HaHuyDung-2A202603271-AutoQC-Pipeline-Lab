@@ -1,6 +1,6 @@
 """Calibration: đo độ chính xác của CHÍNH CÔNG CỤ KIỂM trên bộ có lỗi cố ý đã biết (ĐÃ VIẾT SẴN).
 
-Slide Day 09: "Script bắt đủ lỗi đã chèn thì mới đáng tin trên dữ liệu thật". `data/calib/` là 30+7 ảnh nhãn sạch
+Slide Day 09: "Script bắt đủ lỗi đã chèn thì mới đáng tin trên dữ liệu thật". `data/calib/` là 30+9 ảnh nhãn sạch
 trong đó đã chèn lỗi cố ý; `data/calib/MANIFEST.csv` là ĐÁP ÁN (loại lỗi, ảnh, dòng).
 
     python -m pipeline.calibrate                                   # bảng precision/recall/F1 theo mã lỗi

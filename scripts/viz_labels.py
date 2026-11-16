@@ -22,7 +22,11 @@ NAMES = ["car", "person", "truck", "bus"]
 
 def draw(ds, stem, out):
     p = ds.image_path(stem)
-    im = Image.open(p).convert("RGB")
+    try:
+        im = Image.open(p).convert("RGB")
+    except Exception as e:  # noqa: BLE001  ảnh hỏng (CORRUPT_IMAGE) là một phần của bài: báo và bỏ qua
+        print(f"bỏ qua {stem}: không mở được ảnh ({type(e).__name__}) — đây chính là lỗi mà check `images` phải bắt")
+        return
     W, H = im.size
     d = ImageDraw.Draw(im)
     for no, ln in ds.read_label_lines(stem) or []:
