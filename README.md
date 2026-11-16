@@ -15,7 +15,7 @@
 
 > **Máy kiểm quy tắc, người kiểm ý nghĩa.** Bạn xây một pipeline chạy bằng MỘT lệnh, rồi **chứng minh** (số liệu, trung thực) nó có ích.
 
-Bạn nhận một lô **224 ảnh** đã được gán nhãn sẵn (giảng viên chạy **yolo26n** để pre-label, rồi qua một vòng gán/sửa cẩu thả — bạn **không** chạy model này). Trong lô có đủ loại lỗi:
+Bạn nhận một lô **224 ảnh** đã được gán nhãn sẵn. Trong lô có đủ loại lỗi:
 ảnh hỏng, ảnh trùng, ảnh rò rỉ từ tập test, file nhãn mất, ID lớp sai, box tràn ảnh, box lỏng, thiếu nhãn, gán nhầm lớp…
 Việc của bạn là **xây một pipeline tự động** — một lệnh chạy từ ảnh thô đến bộ dữ liệu sạch — rồi **chứng minh bằng thí nghiệm**
 (train trên Google Colab) rằng dữ liệu sau pipeline cho model tốt hơn dữ liệu gốc.
