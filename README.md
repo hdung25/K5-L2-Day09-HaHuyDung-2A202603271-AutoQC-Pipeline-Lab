@@ -20,19 +20,18 @@ Bạn nhận một lô **224 ảnh** đã được gán nhãn sẵn. Trong lô c
 Việc của bạn là **xây một pipeline tự động** — một lệnh chạy từ ảnh thô đến bộ dữ liệu sạch — rồi **chứng minh bằng thí nghiệm**
 (train trên Google Colab) rằng dữ liệu sau pipeline cho model tốt hơn dữ liệu gốc.
 
-![Pipeline 5 bước và cửa chặn](docs/assets/pipeline.png)
+![Pipeline và cửa chặn](docs/assets/pipeline.png)
 
 <details>
 <summary><b>Sơ đồ chi tiết (mermaid)</b></summary>
 
 ```mermaid
 flowchart LR
-  P["2 · Pre-label yolo26n<br/><i>giảng viên đã chạy</i><br/>(lô tới tay bạn đã có nhãn)"] -.-> A
-  A["1 · Nhận dữ liệu<br/><i>máy</i>: ảnh hỏng, kích thước,<br/>trùng, rò rỉ test"] --> C["4 · QC tự động<br/><i>máy</i>: 5 check + sửa tự động<br/>+ cửa chặn (lặp nhiều vòng)"]
+  A["Nhận dữ liệu<br/><i>máy</i>: ảnh hỏng, kích thước,<br/>trùng, rò rỉ test"] --> C["QC tự động<br/><i>máy</i>: 5 check + sửa tự động<br/>+ cửa chặn (lặp nhiều vòng)"]
   C -->|lỗi bắt buộc| X["Rework<br/>chặn pipeline"]
-  C -->|cảnh báo| D["3 · Gán, sửa<br/><i>người</i>: hàng đợi<br/>ưu tiên"]
+  C -->|cảnh báo| D["Gán, sửa<br/><i>người</i>: hàng đợi<br/>ưu tiên"]
   D --> C
-  C -->|đạt cửa chặn| E["5 · Xuất dataset<br/><i>máy</i>: manifest + version"]
+  C -->|đạt cửa chặn| E["Xuất dataset<br/><i>máy</i>: manifest + version"]
   E --> F["Train Colab<br/>raw vs clean"]
 ```
 </details>

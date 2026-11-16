@@ -93,7 +93,7 @@ def hero():
         rrect(d, (x, 380, x + w, 424), 22, fill=c)
         text(d, (x + 18, 391), name, 20, "white", True)
         x += w + 14
-    text(d, (70, 455), "224 ảnh · 4 lớp car/person/truck/bus · 22 mã lỗi · yolo26n", 20, "#9fc7cf")
+    text(d, (70, 455), "224 ảnh · 4 lớp car/person/truck/bus · 22 mã lỗi", 20, "#9fc7cf")
     for k, s in enumerate(sample(3)):
         t = fit(s, 330, 220)
         im.paste(t, (860 + (k % 2) * 350, 30 + (k // 2) * 250 + (k % 2) * 40))
@@ -104,20 +104,20 @@ def pipeline():
     W, H = 1600, 520
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
-    text(d, (40, 24), "Pipeline 5 bước (MỘT lệnh: python -m pipeline.run)", 30, NAVY, True)
-    steps = [("1 Nhận", "máy", "ảnh hỏng, nhỏ,\ntrùng, rò rỉ test", TEAL), ("2 Pre-label", "giảng viên", "yolo26n đã chạy\n(bạn nhận lô có nhãn)", GRAY),
-             ("3 Gán, sửa", "người", "hàng đợi ưu tiên\nngân sách 80 ảnh", ORANGE), ("4 QC tự động", "máy", "5 check + sửa tự động\n+ cửa chặn", PURPLE), ("5 Xuất", "máy", "dataset + manifest\n(truy vết)", GREEN)]
-    x0, y0, w, h, gap = 40, 110, 270, 190, 40
+    text(d, (40, 24), "Pipeline (MỘT lệnh: python -m pipeline.run)", 30, NAVY, True)
+    steps = [("Nhận dữ liệu", "máy", "ảnh hỏng, nhỏ,\ntrùng, rò rỉ test", TEAL),
+             ("Gán, sửa", "người", "hàng đợi ưu tiên\nngân sách 80 ảnh", ORANGE), ("QC tự động", "máy", "5 check + sửa tự động\n+ cửa chặn", PURPLE), ("Xuất", "máy", "dataset + manifest\n(truy vết)", GREEN)]
+    x0, y0, w, h, gap = 40, 110, 350, 190, 50
     for i, (t, who, sub, c) in enumerate(steps):
         x = x0 + i * (w + gap)
         rrect(d, (x, y0, x + w, y0 + h), 18, fill=c)
         text(d, (x + 20, y0 + 18), t, 26, "white", True)
         text(d, (x + 20, y0 + 58), who, 20, "#ffffffcc")
         text(d, (x + 20, y0 + 100), sub, 19, "white")
-        if i < 4:
+        if i < 3:
             arrow(d, (x + w + 4, y0 + h // 2), (x + w + gap - 4, y0 + h // 2))
     # cửa chặn
-    text(d, (40, 350), "Cửa chặn (bước 4):", 24, NAVY, True)
+    text(d, (40, 350), "Cửa chặn (sau QC tự động):", 24, NAVY, True)
     for i, (t, sub, c) in enumerate([("Release", "0 lỗi bắt buộc,\ncảnh báo < 10% ảnh", GREEN), ("Hold", "cảnh báo ≥ 10%\n→ người xem thêm", ORANGE), ("Rework", "còn lỗi bắt buộc\n→ KHÔNG xuất", RED)]):
         x = 40 + i * 330
         rrect(d, (x, 395, x + 300, 495), 14, fill=c)
