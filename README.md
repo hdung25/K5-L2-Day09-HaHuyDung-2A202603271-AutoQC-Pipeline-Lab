@@ -10,7 +10,7 @@
   <img alt="ảnh" src="https://img.shields.io/badge/dữ%20liệu-224%20ảnh-12b3a8">
   <img alt="python" src="https://img.shields.io/badge/python-3.9–3.13-3776ab">
   <img alt="gpu" src="https://img.shields.io/badge/GPU-chỉ%20để%20train-2fbf71">
-  <a href="https://colab.research.google.com/github/Haiduongcable/L23-Day09-AutoQC-Pipeline-Lab/blob/main/notebooks/day09_train_compare.ipynb"><img alt="Mở trong Colab" src="https://colab.research.google.com/assets/colab-badge.svg"></a>
+  <a href="https://colab.research.google.com/github/VinUni-AI20k/K5-L23-Day09-AutoQC-Pipeline-Lab/blob/main/notebooks/day09_train_compare.ipynb"><img alt="Mở trong Colab" src="https://colab.research.google.com/assets/colab-badge.svg"></a>
 </p>
 
 > **Máy kiểm quy tắc, người kiểm ý nghĩa.** Bạn xây một pipeline chạy bằng MỘT lệnh, rồi **chứng minh** (số liệu, trung thực) nó có ích.
@@ -50,7 +50,7 @@ Bạn sẽ **tự viết 9 mảnh code** (7 module check + `autofix` + `gate`, x
 
 ## Bắt đầu nhanh (6 bước)
 
-1. Mở https://github.com/Haiduongcable/L23-Day09-AutoQC-Pipeline-Lab → **Use this template** → repo **public** của bạn (tên: xem [SUBMISSION.md](SUBMISSION.md)), rồi `git clone`.
+1. Mở https://github.com/VinUni-AI20k/K5-L23-Day09-AutoQC-Pipeline-Lab → **Use this template** → repo **public** của bạn (tên: xem [SUBMISSION.md](SUBMISSION.md)), rồi `git clone`.
 2. Cài môi trường: [docs/SETUP.md](docs/SETUP.md) → `python -m pytest -q` ra **64 failed** (đúng dự kiến).
 3. Đọc [GUIDE.md](GUIDE.md) và [RULES.md](RULES.md); làm theo thứ tự: unit test xanh → `make calibrate` → `make run`.
 4. (Bản nhẹ bắt buộc) Lọc box nhỏ trong CVAT: [docs/CVAT_FILTER.md](docs/CVAT_FILTER.md), nhãn dự án ở [cvat/labels.json](cvat/labels.json).
