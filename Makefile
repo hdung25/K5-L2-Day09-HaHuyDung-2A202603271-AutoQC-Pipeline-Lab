@@ -1,5 +1,5 @@
 # Lệnh tắt. Chạy từ thư mục gốc repo. Windows không có make: chạy trực tiếp các lệnh python bên dưới.
-PY ?= python
+PY ?= $(shell command -v python3 >/dev/null 2>&1 && echo python3 || echo python)
 export PYTHONUTF8=1
 
 test:            ## chạy unit test (tiến độ của bạn: xanh hết = xong phần code)
@@ -15,7 +15,10 @@ train:           ## train raw vs clean (cần GPU; nên chạy trên Colab)
 	$(PY) scripts/train_compare.py --variants raw clean --seeds 0 1 --epochs 20
 	$(PY) scripts/summarize_results.py
 
-check:           ## kiểm tra bài nộp
+check:           ## kiểm tra bài nộp (đầy đủ, gồm train)
 	$(PY) scripts/check_submission.py
+
+check-core:      ## kiểm tra bài nộp, BỎ QUA train (chưa có Colab)
+	$(PY) scripts/check_submission.py --no-train
 
 all: test run check

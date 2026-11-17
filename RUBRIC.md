@@ -4,15 +4,15 @@
 
 | # | Hạng mục | Điểm | Bằng chứng |
 |---|---|---:|---|
-| 1 | 5 module đúng (unit test) | 40 | `pipeline/`, `pytest` |
+| 1 | 4 module đúng (unit test) | 40 | `pipeline/`, `pytest` |
 | 2 | Pipeline tự động hoá một lệnh | 15 | `make run`, `submission/reports/`, test e2e |
 | 3 | Calibration (2 ngưỡng) | 10 | `submission/calibration/`, `REPORT.md` §3 |
 | 4 | Báo cáo lỗi, phân việc, quyết định | 15 | `submission/REPORT.md` §1, 2, 4, 6 |
-| 5 | Train so sánh raw vs clean | 15 | `submission/results/`, `REPORT.md` §5 |
+| 5 | Train so sánh raw vs clean (**tùy chọn, chấm riêng**) | 15 | `submission/results/`, `REPORT.md` §5 |
 | 6 | Tái lập và git | 5 | `check_submission.py`, commit |
 
-## 1. 5 module đúng (40)
-Chấm tự động bằng `pytest` (trên máy chấm, có thêm vài ca ẩn cùng kiểu). Trọng số: `second_opinion` 10 · `label_format` 9 · `autofix` 8 · `duplicates` 8 · `gate` 5. Bốn check viết sẵn không chấm.
+## 1. 4 module đúng (40)
+Chấm tự động bằng `pytest` (trên máy chấm, có thêm vài ca ẩn cùng kiểu). Trọng số: `second_opinion` 13 · `autofix` 11 · `label_format` 10 · `gate` 6. Năm check viết sẵn (gồm `duplicates`) không chấm.
 - Trừ: đọc ngưỡng viết cứng trong code thay vì `cfg`; check làm script chết với dòng hỏng; xoá/ghi đè `data/raw`.
 
 ## 2. Pipeline tự động hoá (15)
@@ -28,13 +28,13 @@ Chấm tự động bằng `pytest` (trên máy chấm, có thêm vài ca ẩn c
 
 ## 4. Báo cáo lỗi, phân việc, quyết định (15)
 - 3: số lỗi theo từng mã (kèm mẫu số), "kết luận trước, chi tiết sau".
-- 4: **phân việc sửa**: lỗi nào máy sửa, lỗi nào người, ảnh nào ưu tiên; giải thích hàng đợi.
-- 4: quyết định Release/Hold/Rework **khớp số liệu**, có điều kiện để đổi quyết định; thừa nhận ≥ 2 điểm pipeline **không** bắt được.
-- 2: CVAT bản nhẹ ([docs/CVAT_FILTER.md](docs/CVAT_FILTER.md)): lọc box nhỏ, đối chiếu `BOX_TINY`, 1 câu về `can_review`.
+- 5: **phân việc sửa**: lỗi nào máy sửa, lỗi nào người, ảnh nào ưu tiên; giải thích hàng đợi.
+- 5: quyết định Release/Hold/Rework **khớp số liệu**, có điều kiện để đổi quyết định; thừa nhận ≥ 2 điểm pipeline **không** bắt được.
 - 2: ghi chú dùng AI (prompt, cách kiểm, 1 lần AI sai) hoặc "không dùng".
 - Bị trừ nặng: báo Release trong khi `07_error_list_v3` còn lỗi bắt buộc hoặc cảnh báo ≥ ngưỡng.
 
-## 5. Train so sánh (15)
+## 5. Train so sánh (15, tùy chọn, chấm riêng)
+Không làm: tối đa 85/100. Báo "chưa chạy" trung thực ở `REPORT.md` §5, `make check-core` vẫn qua.
 - 4: đúng quy trình công bằng: cùng val/test/siêu tham số/seed; ≥ 2 seed mỗi biến thể.
 - 4: `comparison.md` do script sinh, đủ mAP50, mAP50-95, precision, recall (TB ± độ lệch).
 - 4: `REPORT.md` §5 so sánh chênh lệch với độ nhiễu giữa seed; ≥ 2 nguyên nhân có thể (ảnh trùng/rò rỉ test, box lỏng, thiếu nhãn, lớp ít ảnh…) và cách kiểm.
@@ -45,10 +45,10 @@ Chấm tự động bằng `pytest` (trên máy chấm, có thêm vài ca ẩn c
 - 3: ≥ 5 commit có thông điệp rõ, mang tên bạn; không commit `work/`, `*.pt`.
 
 ## Cách chấm trên máy giảng viên
-- Ghi đè mọi file "ĐÃ VIẾT SẴN" bằng bản gốc (so `scripts/_protected.json`), giữ 5 module của học viên và `configs/pipeline.yaml`; chạy `pytest` (có thêm ca ẩn), `make run`, và `check_submission.py`.
+- Ghi đè mọi file "ĐÃ VIẾT SẴN" bằng bản gốc (so `scripts/_protected.json`), giữ 4 module của học viên và `configs/pipeline.yaml`; chạy `pytest` (có thêm ca ẩn), `make run`, và `check_submission.py`.
 - Chấm lại trên lô khác (đổi tên ảnh, xáo trộn vị trí lỗi) để phát hiện code cứng đáp án.
 - Số trong báo cáo được đối chiếu với `08_summary.json`, `calibration.json`, `results/*.json` (có `manifest_sha1`, `config_sha1`).
 
 ## Thưởng (tối đa +5, không vượt 100)
 - +3: thêm một check mới (box tiny/dense, lệch tỉ lệ khung hình, class imbalance) có test.
-- +2: (bản sâu) duyệt tay ≥ 5 ảnh trong CVAT bằng bộ lọc, kèm ảnh chụp và so sánh với pipeline.
+- +2: CVAT ([docs/CVAT_FILTER.md](docs/CVAT_FILTER.md)): lọc box nhỏ trên ≥ 1 ảnh (≥ 5 ảnh nếu làm kỹ), đối chiếu `BOX_TINY`, 1 câu về `can_review`, kèm ảnh chụp.

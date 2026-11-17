@@ -1,14 +1,14 @@
 # Checkpoints — Day 09
 
-Bài cá nhân, dự kiến **4–4,5 giờ**; Colab chạy nền ~20 phút. Mốc tính từ lúc bắt đầu, là điểm **tự kiểm tra**, không phải hạn nộp.
+Bài cá nhân, dự kiến **~4,5 giờ** (không tính train; train Colab là phần tùy chọn, chấm riêng ~35'). Mốc tính từ lúc bắt đầu, là điểm **tự kiểm tra**, không phải hạn nộp.
 
 | Mốc | Mục tiêu | Tự kiểm tra |
 |---|---|---|
-| 0:20 | **CP1** Chuẩn bị | `pytest` chạy được (46 failed, 18 passed), đã đọc `data/README.md` và 4 check viết sẵn |
-| 2:20 | **CP2** 5 module | `test_label_format`, `test_duplicates`, `test_second_opinion`, `test_autofix`, `test_gate` xanh; `pytest` xanh hết |
-| 3:00 | **CP3** Calibrate + CVAT nhẹ | `make calibrate` chạy; đã chọn 2 ngưỡng và ghi lý do; `configs/pipeline.yaml` đã đổi |
-| 3:30 | **CP4** Chạy và train | `make run` ra đủ `reports/`; đã push `export/clean_v1/` và bấm Run all trên Colab |
-| 4:15 | **CP5** Báo cáo + nộp | `make check` hết LỖI; `REPORT.md` xong |
+| 0:30 | **CP1** Chuẩn bị | `pytest` chạy được (55 failed, 24 passed), đã đọc `data/README.md` và 5 check viết sẵn |
+| 2:45 | **CP2** 4 module | `test_label_format`, `test_gate`, `test_autofix`, `test_second_opinion` xanh; `pytest` xanh hết |
+| 3:15 | **CP3** Calibrate | `make calibrate` chạy; đã chọn 2 ngưỡng và ghi lý do; `configs/pipeline.yaml` đã đổi |
+| 3:35 | **CP4** Chạy pipeline | `make run` ra đủ `reports/` và `export/clean_v1/` (train Colab: tùy chọn, làm sau) |
+| 4:20 | **CP5** Báo cáo + nộp | `make check-core` hết LỖI (`make check` nếu đã train); `REPORT.md` xong |
 
 ## Cần hiểu ở mỗi mốc
 

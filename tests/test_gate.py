@@ -41,3 +41,19 @@ def test_reviewed_images_and_dataset_level_issues_are_ignored(cfg):
 def test_clean(cfg):
     d = gate.decide([], STEMS, cfg)
     assert d["decision"] == "Release" and d["n_images"] == 20 and d["warn_ratio"] == 0
+
+
+# ---- ca khó hơn ----
+def test_empty_dataset_does_not_divide_by_zero(cfg):
+    d = gate.decide([], [], cfg)
+    assert d["decision"] == "Release" and d["n_images"] == 0 and d["warn_ratio"] == 0
+
+
+def test_exact_ratio_boundary_with_other_denominator(cfg):
+    stems = [f"i{k}" for k in range(30)]
+    d = gate.decide([iss("warn", f"i{k}") for k in range(3)], stems, cfg)       # 3/30 = 10% đúng ngưỡng
+    assert d["decision"] == "Hold"
+
+
+def test_warning_on_image_not_in_the_dataset_is_ignored(cfg):
+    assert gate.decide([iss("warn", "đã_bị_xoá"), iss("warn", "i1")], STEMS, cfg)["n_warn_images"] == 1

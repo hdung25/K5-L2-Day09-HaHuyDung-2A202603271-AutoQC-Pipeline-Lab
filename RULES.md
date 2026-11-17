@@ -4,7 +4,7 @@
 **Bài cá nhân.** Mỗi người một repo (fork/template từ repo đề). Commit dưới tên của bạn.
 
 ## Sản phẩm là của bạn
-- 5 module `pipeline/checks/{label_format,duplicates,second_opinion}.py`, `pipeline/steps/autofix.py`, `pipeline/steps/gate.py` do **bạn** viết (4 check còn lại đã viết sẵn). Không sao chép bài người khác.
+- 4 module `pipeline/checks/{label_format,second_opinion}.py`, `pipeline/steps/autofix.py`, `pipeline/steps/gate.py` do **bạn** viết (5 check còn lại, gồm `duplicates`, đã viết sẵn). Không sao chép bài người khác.
 - Được dùng AI để viết script **nếu** bạn (1) mô tả đủ 4 ý như slide ([docs/PROMPTING.md](docs/PROMPTING.md)), (2) đọc và hiểu từng dòng,
   (3) kiểm bằng unit test **và** bằng lỗi chèn sẵn. Ghi 3 dòng (prompt chính, cách bạn kiểm, 1 lần AI sai) trong `submission/REPORT.md` mục 6.
   Bạn phải giải thích được mọi dòng trong file mình nộp.

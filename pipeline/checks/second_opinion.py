@@ -33,7 +33,7 @@ Tất cả severity WARN; `Issue.extra` nên có {"conf": ...} hoặc {"iou": ..
 
 Gợi ý
 - `iou_xywh` có sẵn. Dòng nhãn hỏng không được làm script chết (dùng `ds.valid_boxes` và `parse_yolo_line` trong try).
-- Kết quả phụ thuộc mạnh vào ngưỡng: calibrate chúng ở Pha 4 thay vì đoán.
+- Kết quả phụ thuộc mạnh vào ngưỡng: calibrate chúng ở Bước 3 thay vì đoán.
 """
 from ..common import WARN, Issue, iou_xywh, parse_yolo_line  # noqa: F401
 from ..model_cache import get_preds  # noqa: F401

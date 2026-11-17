@@ -63,3 +63,25 @@ def test_idempotent(make_ds, cfg):
     iss = label_format.run(ds, cfg)
     autofix.fix(ds, iss, cfg)
     assert label_format.run(ds, cfg) == [] and autofix.fix(ds, label_format.run(ds, cfg), cfg) == []
+
+
+# ---- ca khó hơn: "xanh" mà logic sai thì sẽ bị bắt ở đây ----
+def test_line_with_two_errors_is_dropped_once_and_not_clipped(make_ds, cfg):
+    ds = make_ds(images={"a": 1}, labels={"a": ["1 .5 .5 .2 .2", "1 0.95 0.5 0.2 0.2", "0 .7 .7 .1 .1"]})
+    fx = autofix.fix(ds, [err("BOX_OUT_OF_IMAGE", "a", 2), err("DUP_BOX", "a", 2)], cfg)
+    assert lines(ds, "a") == ["1 .5 .5 .2 .2", "0 .7 .7 .1 .1"]
+    assert [(f["line"], f["action"]) for f in fx] == [(2, "drop_line")], "dòng đã xoá thì không ghi thêm clip_box"
+
+
+def test_blank_line_does_not_shift_original_line_numbers(make_ds, cfg):
+    ds = make_ds(images={"a": 1}, labels={"a": ["1 .5 .5 .2 .2", "", "93 .5 .5 .2 .2", "0 .7 .7 .1 .1"]})
+    fx = autofix.fix(ds, [err("BAD_CLASS_ID", "a", 3)], cfg)
+    assert [l for l in lines(ds, "a") if l.strip()] == ["1 .5 .5 .2 .2", "0 .7 .7 .1 .1"]
+    assert [(f["line"], f["action"]) for f in fx] == [(3, "drop_line")]
+
+
+def test_issue_on_a_removed_image_does_not_crash_and_other_images_are_untouched(make_ds, cfg):
+    ds = make_ds(images={"a": 1, "b": 2}, labels={"a": ["1 .5 .5 .2 .2", "93 .5 .5 .2 .2"], "b": ["1 .5 .5 .2 .2"]})
+    before_b = ds.label_path("b").read_bytes()
+    autofix.fix(ds, [err("DUP_IMAGE_EXACT", "a"), err("BAD_CLASS_ID", "a", 2)], cfg)
+    assert [p.stem for p in ds.image_files()] == ["b"] and ds.label_path("b").read_bytes() == before_b

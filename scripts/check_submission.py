@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Tự kiểm tra bài nộp trước khi push (ĐÃ VIẾT SẴN). `python scripts/check_submission.py`  — hết LỖI mới nộp."""
+"""Tự kiểm tra bài nộp trước khi push (ĐÃ VIẾT SẴN). `python scripts/check_submission.py`  — hết LỖI mới nộp.
+`--no-train`: bỏ qua phần train (chưa có Colab/GPU). Phần train được chấm riêng (15 điểm), không chặn phần còn lại."""
 from __future__ import annotations
 
 import csv
@@ -11,6 +12,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+NO_TRAIN = "--no-train" in sys.argv
 errs, warns = [], []
 
 
@@ -115,30 +117,34 @@ except Exception as e:  # noqa: BLE001
 # 5. báo cáo
 no_todo("submission/REPORT.md")
 
-# 6. train so sánh
-res = sorted((ROOT / "submission/results").glob("*_seed*.json"))
-by = {}
-for p in res:
-    d = json.loads(p.read_text(encoding="utf-8"))
-    by.setdefault(d["variant"], []).append(d["seed"])
-mf = ROOT / "submission/export/clean_v1/manifest.json"
-runs = [json.loads(p.read_text(encoding="utf-8")) for p in res]
-for r in runs:
-    if r["variant"] in ("clean",) and mf.exists():
-        if r.get("manifest_sha1") != sha1(mf):
-            errs.append(f"{r['variant']}_seed{r['seed']}.json: manifest_sha1 không khớp export hiện tại (train trên dữ liệu khác?)")
-        if r.get("train_images") != json.loads(mf.read_text(encoding="utf-8"))["n_images"]:
-            errs.append(f"{r['variant']}_seed{r['seed']}.json: train_images khác manifest.n_images")
-if len({(r["epochs"], r.get("batch"), r.get("model")) for r in runs}) > 1:
-    errs.append("các lần train dùng epoch/batch/model khác nhau: so sánh không công bằng")
-if len({tuple(sorted(r["seed"] for r in runs if r["variant"] == v)) for v in by if v in ("raw", "clean")}) > 1:
-    warns.append("raw và clean không có cùng danh sách seed")
-for v in ("raw", "clean"):
-    if v not in by:
-        errs.append(f"thiếu kết quả train biến thể '{v}' trong submission/results/")
-    elif len(by[v]) < 2:
-        warns.append(f"biến thể '{v}' chỉ có {len(by[v])} seed: nên ≥ 2 để biết nhiễu")
-need("submission/results/comparison.md", "(python scripts/summarize_results.py)")
+# 6. train so sánh (chấm riêng; --no-train để bỏ qua)
+if NO_TRAIN:
+    warns.append("bỏ qua phần train (--no-train): phần train 15 điểm chấm riêng, làm sau khi có Colab")
+else:
+    res = sorted((ROOT / "submission/results").glob("*_seed*.json"))
+    by = {}
+    for p in res:
+        d = json.loads(p.read_text(encoding="utf-8"))
+        by.setdefault(d["variant"], []).append(d["seed"])
+    mf = ROOT / "submission/export/clean_v1/manifest.json"
+    runs = [json.loads(p.read_text(encoding="utf-8")) for p in res]
+    for r in runs:
+        if r["variant"] in ("clean",) and mf.exists():
+            if r.get("manifest_sha1") != sha1(mf):
+                errs.append(f"{r['variant']}_seed{r['seed']}.json: manifest_sha1 không khớp export hiện tại (train trên dữ liệu khác?)")
+            if r.get("train_images") != json.loads(mf.read_text(encoding="utf-8"))["n_images"]:
+                errs.append(f"{r['variant']}_seed{r['seed']}.json: train_images khác manifest.n_images")
+    if len({(r["epochs"], r.get("batch"), r.get("model")) for r in runs}) > 1:
+        errs.append("các lần train dùng epoch/batch/model khác nhau: so sánh không công bằng")
+    if len({tuple(sorted(r["seed"] for r in runs if r["variant"] == v)) for v in by if v in ("raw", "clean")}) > 1:
+        warns.append("raw và clean không có cùng danh sách seed")
+    for v in ("raw", "clean"):
+        if v not in by:
+            errs.append(f"thiếu kết quả train biến thể '{v}' trong submission/results/")
+        elif len(by[v]) < 2:
+            warns.append(f"biến thể '{v}' chỉ có {len(by[v])} seed: nên ≥ 2 để biết nhiễu")
+    need("submission/results/comparison.md", "(python scripts/summarize_results.py)")
+
 
 print()
 for w in warns:

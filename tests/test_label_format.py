@@ -64,3 +64,25 @@ def test_blank_lines_keep_original_numbers(make_ds, cfg):
 def test_broken_line_does_not_crash_and_other_lines_still_checked(make_ds, cfg):
     iss = run(make_ds, cfg, ["garbage", "1 0.97 0.5 0.2 0.3"])
     assert find(iss, "BAD_FORMAT") == [("a", 1)] and find(iss, "BOX_OUT_OF_IMAGE") == [("a", 2)]
+
+
+# ---- ca khó hơn ----
+def test_tiny_when_the_short_side_is_the_height(make_ds, cfg):
+    iss = run(make_ds, cfg, ["1 0.5 0.5 0.5 0.01"])                 # cao 0.01*480 = 4.8 px
+    assert find(iss, "BOX_TINY") == [("a", 1)]
+
+
+def test_overflow_at_bottom_edge_and_exact_boundary(make_ds, cfg):
+    iss = run(make_ds, cfg, ["1 0.5 0.97 0.2 0.1", "1 0.5 0.95 0.2 0.1"])   # dòng 1 chạm y=1.02 (tràn); dòng 2 chạm đúng 1.0 (ổn)
+    assert find(iss, "BOX_OUT_OF_IMAGE") == [("a", 1)]
+
+
+def test_blank_line_keeps_original_line_numbers(make_ds, cfg):
+    iss = run(make_ds, cfg, ["1 0.5 0.5 0.2 0.3", "", "93 0.5 0.5 0.2 0.3"])
+    assert find(iss, "BAD_CLASS_ID") == [("a", 3)]
+
+
+def test_duplicate_box_needs_the_same_class(make_ds, cfg):
+    same = run(make_ds, cfg, ["1 0.5 0.5 0.2 0.3", "1 0.5 0.5 0.2 0.3"])
+    diff = run(make_ds, cfg, ["1 0.5 0.5 0.2 0.3", "2 0.5 0.5 0.2 0.3"])
+    assert find(same, "DUP_BOX") == [("a", 2)] and find(diff, "DUP_BOX") == []
