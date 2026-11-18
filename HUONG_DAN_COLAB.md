@@ -65,9 +65,25 @@ $env:PYTHONUTF8=1; .\.venv\Scripts\python scripts/check_submission.py
 ```
    (Nếu chưa có `.venv` ở thư mục gốc: `python -m venv .venv; .\.venv\Scripts\python -m pip install -r requirements.txt`.)
 
-## Bước 6 — Điền mục 5 của `submission/REPORT.md`
+## Bước 5b (tùy chọn, nên làm) — Kiểm giả thuyết rò rỉ test
 
-Thay đoạn "**Chưa chạy** …" bằng (gửi mình file `comparison.md` là mình viết giúp được):
+`raw` chứa 5 ảnh trùng tập test, nên điểm của `raw` có thể bị thổi phồng. Kiểm bằng cách đánh giá lại 4 model trên test **bỏ 5 ảnh đó**.
+Cần các file `best.pt` còn trong phiên Colab. Nếu phiên đã ngắt, phải chạy lại ô 1–6 (~20 phút) trước.
+Thêm một ô code mới ở cuối notebook (+ Code) rồi chạy:
+
+```python
+!git pull -q
+!python scripts/eval_without_leak.py
+from IPython.display import Markdown, display
+display(Markdown(open("submission/results/leak_check.md").read()))
+!zip -qr leak_check.zip submission/results/leak_check.md submission/results/leak_check.json
+from google.colab import files; files.download("leak_check.zip")
+```
+Mất khoảng 1–2 phút. Tải `leak_check.zip` về rồi gửi mình (hoặc chụp bảng): mình sẽ thêm kết quả vào mục 5.
+
+## Bước 6 — Mục 5 của `submission/REPORT.md` (ĐÃ VIẾT từ results.zip)
+
+Mục 5 đã được điền từ kết quả Colab của bạn. Nội dung gồm:
 1. Dán bảng từ `submission/results/comparison.md` (model yolo26n, 20 epoch, seed 0/1, số ảnh train: raw 224 / clean 202).
 2. Tính **Δ mAP50 = clean − raw** và so với **độ lệch chuẩn giữa 2 seed** của mỗi biến thể. Nếu |Δ| ≤ độ lệch chuẩn → viết "**chưa kết luận được, khác biệt nằm trong nhiễu**", không viết "clean tốt hơn".
 3. ≥ 2 nguyên nhân + cách kiểm (đã đặt giả thuyết sẵn trong báo cáo):
