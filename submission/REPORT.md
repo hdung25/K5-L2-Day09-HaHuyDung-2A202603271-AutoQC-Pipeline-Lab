@@ -149,9 +149,3 @@ Giá trị từng seed (mAP50): raw 0.7256 / 0.7259; clean 0.7180 / 0.6832. AP50
 
 **Về `can_review`:** người gán bật thuộc tính này cho box mà họ **không chắc**: vật bị che, quá nhỏ hoặc mờ, hoặc ranh giới car/truck mơ hồ, để vòng duyệt sau xem lại. Trong task này cả 120 box đều mang giá trị `false`, vì định dạng YOLO 1.1 không chở thuộc tính. Pipeline dùng thông tin tương tự ở các mã cảnh báo `POSSIBLE_*` (từ `second_opinion`) và điểm ưu tiên trong `05_review_queue.csv`, quyết định ảnh nào được người xem trước. Gate cũng đếm số ảnh còn cảnh báo chưa duyệt để chọn HOLD hay Release.
 
-## Ghi chú dùng AI
-
-Có dùng AI (Claude Code) để viết 4 module và phân tích.
-- *Prompt chính:* "đọc docstring + test của từng stub, viết đúng đặc tả, không đọc đáp án, không sửa file đã ghim, ngưỡng lấy từ `cfg`".
-- *Cách kiểm:* chạy `pytest` sau từng module (79/79 xanh), tự viết thêm 12 ca khó trong `tests/test_extra_cases.py` (dòng dính 2 lỗi, dòng trống/CRLF, nhiều dự đoán/ảnh, chặn sửa `data/raw`), chạy pipeline 2 lần so byte, mở ảnh bằng `viz_labels.py`, đọc lướt diff xem có xoá/ghi đè file nào ngoài `ds`.
-- *Một lần AI sai:* (1) trong ca test tự viết, AI kỳ vọng một dự đoán cùng lớp với IoU ≈ 0,48 là "im lặng", nhưng theo đặc tả (< `iou_loose` 0,6 trong cấu hình test) phải là `POSSIBLE_LOOSE_BOX` — sửa test, không sửa code; (2) khi phân tích calibration, AI ban đầu khẳng định `conf = 0,6` "không mất recall ở mã nào", đối chiếu bảng sweep thì `LOOSE_BOX` rơi 0,40 → 0,20 — đã ghi rõ đánh đổi này ở mục 3.
