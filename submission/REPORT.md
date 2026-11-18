@@ -78,9 +78,34 @@ Từ `02_error_list_v1` (TRƯỚC khi sửa; gồm cả lỗi cửa vào ở `01
 
 ## 5. Train: raw vs clean (tùy chọn, chấm riêng)
 
-**Chưa chạy** tại thời điểm viết báo cáo: phần train cần GPU (Colab T4), sẽ chạy sau theo `notebooks/day09_train_compare.ipynb` (yolo26n, 20 epoch, seed 0 và 1, cùng val `gold_val` 40 ảnh và test 100 ảnh). Khi có `submission/results/comparison.md` sẽ dán bảng vào đây.
+Chạy trên Colab T4 bằng `notebooks/day09_train_compare.ipynb`: **yolo26n, 20 epoch, batch 16, imgsz 640, seed 0 và 1**, cùng val (`gold_val`, 40 ảnh) và cùng test (`data/test`, 100 ảnh nhãn người, 387 box). Chỉ khác dữ liệu train: `raw` = 224 ảnh gốc, `clean` = 202 ảnh của `clean_v1` (`manifest_sha1 801ca56e…`, `config_sha1 58d1755c…` khớp lần chạy pipeline). Bảng do `scripts/summarize_results.py` sinh (`submission/results/comparison.md`):
 
-Giả thuyết đặt trước (để kiểm khi có số): (1) `raw` có **5 ảnh trùng test** (`LEAK_TEST`) + 12 ảnh trùng nội bộ ⇒ mAP test của `raw` có thể bị thổi phồng; kiểm bằng cách so AP trên 5 ảnh test bị rò rỉ vs 95 ảnh còn lại. (2) `clean` còn 38 ảnh có cảnh báo chưa duyệt (chủ yếu box lỏng) ⇒ chênh lệch có thể nhỏ; nếu |Δ mAP50| không lớn hơn độ lệch giữa 2 seed thì kết luận là **chưa phân biệt được**, không nói "tốt hơn".
+| biến thể | #ảnh train | số seed | mAP50 (TB ± độ lệch) | mAP50-95 | precision | recall |
+|---|---|---|---|---|---|---|
+| raw | 224 | 2 | 0.726 ± 0.000 | 0.512 ± 0.004 | 0.764 ± 0.061 | 0.649 ± 0.028 |
+| clean | 202 | 2 | 0.701 ± 0.025 | 0.487 ± 0.008 | 0.759 ± 0.003 | 0.625 ± 0.019 |
+
+Giá trị từng seed (mAP50): raw 0.7256 / 0.7259; clean 0.7180 / 0.6832. AP50 theo lớp (TB 2 seed, từ `*_seed*.json`):
+
+| lớp | box ở test | raw | clean | Δ |
+|---|---:|---:|---:|---:|
+| car | 51 | 0.738 | 0.738 | 0.000 |
+| person | 285 | 0.822 | 0.823 | +0.001 |
+| bus | 27 | 0.695 | 0.703 | +0.008 |
+| truck | 24 | 0.648 (0.657 / 0.640) | **0.538 (0.590 / 0.486)** | **−0.110** |
+
+**So với nhiễu.** Δ mAP50 (clean − raw) = **−0.025**, bằng đúng độ lệch giữa 2 seed của `clean` (0.025) và nhỏ hơn khoảng cách giữa 2 seed của chính `clean` (0.035). Độ lệch 0.000 của `raw` là trùng hợp: precision của `raw` dao động 0.81 / 0.72 giữa 2 seed. Với 2 seed, độ lệch chuẩn ước lượng rất kém tin cậy ⇒ **trên mAP50, khác biệt nằm trong nhiễu**. mAP50-95 thấp hơn 0.024 (gấp ~3 lần độ lệch seed), nhưng gần như toàn bộ chênh lệch đến từ **một lớp, truck**, trong khi car/person/bus trùng nhau tới ±0.01. Lớp truck chỉ có 24 box ở test và 12 box ở val (dùng chọn `best.pt`), và chính `clean` dao động 0.59 ↔ 0.49 ở lớp này giữa 2 seed.
+
+**Kết luận trung thực:** thí nghiệm **chưa cho thấy dữ liệu sau pipeline giúp model tốt hơn**; cũng **chưa đủ bằng chứng để nói nó tệ hơn**, vì phần chênh lệch tập trung ở lớp ít mẫu nhất và nhiễu theo seed. Không được viết "clean tốt hơn".
+
+**Giả thuyết giải thích và cách kiểm:**
+1. **`raw` được "nhìn trước" tập test.** Pipeline phát hiện **5 ảnh raw trùng ảnh test** (`img_0049, img_0101, img_0167, img_0174, img_0221` ↔ `test_033, 039, 044, 085, 009`). `raw` train trên chúng, `clean` thì không ⇒ điểm test của `raw` có thể bị thổi phồng. *Cách kiểm:* đánh giá lại `best.pt` của cả hai trên test **bỏ 5 ảnh đó** (`scripts/eval_without_leak.py`, ô thêm trong `HUONG_DAN_COLAB.md`); nếu khoảng cách thu hẹp, rò rỉ là một phần nguyên nhân.
+2. **Ranh giới car/truck thay đổi sau khi người duyệt.** Số box: car 122 → 101, truck 32 → 41, person 537 → 574 (raw → clean). 80 ảnh duyệt được thay bằng nhãn người kiểu COCO, nơi xe bán tải/van thường là *truck*. Lớp truck vốn ít mẫu và mơ hồ, nên chỉ cần dời ranh giới với ~10 box là AP truck biến động mạnh. *Cách kiểm:* xem AP truck theo seed và ma trận nhầm lẫn car↔truck trên test (`ultralytics val ... plots=True`); thêm biến thể `oracle` (nhãn người hoàn toàn) làm chặn trên.
+3. **`clean` vẫn chưa sạch hẳn và ít ảnh hơn.** Còn 38 ảnh có cảnh báo chưa duyệt (16 ảnh `LOOSE_BOX`, 11 ảnh `FALSE_POS`); 122 ảnh không được người xem vẫn mang nhãn máy. Đồng thời mất 22 ảnh (12 bản trùng không thêm thông tin, nhưng 3 ảnh nhỏ và 5 ảnh rò rỉ là ảnh thật). *Cách kiểm:* tăng ngân sách duyệt hoặc chạy `oracle`; so số box mỗi lớp giữa hai biến thể (đã có ở trên).
+4. **Lỗi cú pháp ít ảnh hưởng tới train.** Ultralytics tự bỏ ảnh hỏng và dòng nhãn hỏng (id lạ, `nan`) khi nạp `raw` ⇒ phần lớn lỗi bắt buộc mà pipeline sửa vốn không đi vào model; lợi ích của pipeline nằm ở **lỗi ngữ nghĩa và rò rỉ test**, những thứ mAP trên 100 ảnh khó đo. *Cách kiểm:* đọc cảnh báo "ignoring corrupt image/label" ở ô 6 của notebook.
+5. **Test nhỏ.** 100 ảnh, truck 24 box, bus 27 box: một vài box đúng/sai đã làm AP lớp dịch 0.05–0.10.
+
+**Việc tiếp theo:** chạy ≥ 5 seed mỗi biến thể để có độ lệch đáng tin; đánh giá trên test bỏ 5 ảnh rò rỉ; thêm `oracle`; duyệt nốt 38 ảnh còn cảnh báo rồi train lại.
 
 ## 6. Quyết định và ghi chú AI
 
@@ -90,5 +115,12 @@ Giả thuyết đặt trước (để kiểm khi có số): (1) `raw` có **5 �
 - *Prompt chính:* "đọc docstring + test của từng stub, viết đúng đặc tả, không đọc đáp án, không sửa file đã ghim, ngưỡng lấy từ `cfg`".
 - *Cách kiểm:* chạy `pytest` sau từng module (79/79 xanh), tự viết thêm 12 ca khó trong `tests/test_extra_cases.py` (dòng dính 2 lỗi, dòng trống/CRLF, nhiều dự đoán/ảnh, chặn sửa `data/raw`), chạy pipeline 2 lần so byte, mở ảnh bằng `viz_labels.py`, đọc lướt diff xem có xoá/ghi đè file nào ngoài `ds`.
 - *Một lần AI sai:* (1) trong ca test tự viết, AI kỳ vọng một dự đoán cùng lớp với IoU ≈ 0,48 là "im lặng", nhưng theo đặc tả (< `iou_loose` 0,6 trong cấu hình test) phải là `POSSIBLE_LOOSE_BOX` — sửa test, không sửa code; (2) khi phân tích calibration, AI ban đầu khẳng định `conf = 0,6` "không mất recall ở mã nào", đối chiếu bảng sweep thì `LOOSE_BOX` rơi 0,40 → 0,20 — đã ghi rõ đánh đổi này ở mục 3.
+
+## Thưởng: check mới `box_aspect` (có test)
+
+`pipeline/checks/box_aspect.py` + `tests/test_box_aspect.py` (6 test: box bình thường im lặng, dải đứng/dải ngang, tỉ lệ đo bằng **pixel** chứ không bằng toạ độ chuẩn hoá, ngưỡng đọc từ `cfg` và ca đúng biên, dòng hỏng/nhãn mồ côi không làm chết, giữ số dòng gốc). Cảnh báo `BOX_ASPECT` khi `max(W/H, H/W)` (pixel) > 8, kèm cờ `at_edge` nếu box chạm mép ảnh.
+- **Chọn ngưỡng có căn cứ:** trên nhãn người của tập val, 99 % box có tỉ lệ ≤ 6,6, chỉ 1/158 box vượt 8; trên calib (nhãn người + lỗi chèn) 0 cảnh báo.
+- **Kết quả trên lô sau autofix** (`python -m pipeline.checks.box_aspect work/run/ds --out submission/reports/extra_box_aspect.csv`): **3/650 box**, đều là người bị cắt ở mép ảnh (`submission/figures/box_aspect.jpg`): `img_0155:2` (14×133 px), `img_0042:5` (25×241 px) và **`img_0030:9` (10×84 px), chính box mà `autofix` vừa `clip_box`** (trước khi cắt rộng 0,038, sau còn 0,015). Check này bắt được một tác dụng phụ của sửa tự động mà `BOX_TINY` chỉ báo chung chung.
+- Check chạy riêng, không nằm trong `checks.QC_CHECKS`, vì file đăng ký và `configs/pipeline.yaml` đã bị ghim (không được thêm khoá); ngưỡng đọc `cfg["box_aspect"]["max_ratio"]` nếu có, nếu không dùng mặc định 8.
 
 *(Thưởng CVAT: không làm.)*
