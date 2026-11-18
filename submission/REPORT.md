@@ -123,4 +123,33 @@ Giá trị từng seed (mAP50): raw 0.7256 / 0.7259; clean 0.7180 / 0.6832. AP50
 - **Kết quả trên lô sau autofix** (`python -m pipeline.checks.box_aspect work/run/ds --out submission/reports/extra_box_aspect.csv`): **3/650 box**, đều là người bị cắt ở mép ảnh (`submission/figures/box_aspect.jpg`): `img_0155:2` (14×133 px), `img_0042:5` (25×241 px) và **`img_0030:9` (10×84 px), chính box mà `autofix` vừa `clip_box`** (trước khi cắt rộng 0,038, sau còn 0,015). Check này bắt được một tác dụng phụ của sửa tự động mà `BOX_TINY` chỉ báo chung chung.
 - Check chạy riêng, không nằm trong `checks.QC_CHECKS`, vì file đăng ký và `configs/pipeline.yaml` đã bị ghim (không được thêm khoá); ngưỡng đọc `cfg["box_aspect"]["max_ratio"]` nếu có, nếu không dùng mặc định 8.
 
-*(Thưởng CVAT: không làm.)*
+## Thưởng: CVAT, lọc box nhỏ `width < 20` (bổ sung mục 6(b))
+
+**Thiết lập (làm tay trên app.cvat.ai):** project có 4 nhãn `car, person, truck, bus` dán từ `cvat/labels.json`, mỗi nhãn có thuộc tính `can_review` (checkbox). Task `autoqc-20-images-review-queue` gồm **20 ảnh**, import nhãn YOLO 1.1 của lô sau autofix (`work/run/ds`), được **120 box** (đều là rectangle, nguồn `file`). 20 ảnh này lấy từ `05_review_queue.csv` (ví dụ `img_0020`, `img_0160`, `img_0127`, `img_0004`, `img_0070`, …), đã bỏ các ảnh `NEEDS_LABEL` vì chưa có nhãn để lọc, và có đủ cả 5 ảnh mà pipeline cờ `BOX_TINY`. Ba ảnh `img_0004`, `img_0050`, `img_0104` có 0 box, khớp với cờ `EMPTY_LABEL` của pipeline.
+
+**Bộ lọc:** *Filters → Add rule → `width < 20`*, sau đó duyệt bằng nút *Go next [F]*. Bộ lọc chỉ nhảy qua các ảnh có box khớp. Ảnh chụp:
+- `submission/figures/cvat_filter_dialog.jpg`: hộp thoại Filters với luật `Width < 20`, cũng nằm trong mục *Recently used*.
+- `submission/figures/cvat_width20_img_0026.jpg`: `img_0026`, **Items: 6**. Đây là những người đứng xa trên bãi thả diều.
+- `submission/figures/cvat_width20_img_0030.jpg`: `img_0030`, **Items: 4**. Đây là người ở mép trái và người đứng xa trong sân bóng chuyền.
+
+**Kết quả lọc:** **25/120 box ở 9/20 ảnh** khớp `width < 20`. Số liệu đọc qua API của chính job đó và khớp với số *Items* hiển thị trong giao diện.
+
+| Ảnh | Số box khớp | Chiều rộng (px) | `BOX_TINY` của pipeline (dòng) |
+|---|---|---|---|
+| img_0020 | 4 | 15,0 – 19,5 | không có |
+| img_0026 | 6 | 11,4 · 12,4 – 19,9 | dòng 6 (11,4 px) |
+| img_0030 | 4 | **9,8** · 18,1 – 19,5 | dòng 9 (9,8 px), chính box bị `clip_box` |
+| img_0051 | 3 | 8,9 · 12,2 · 18,8 | dòng 5 (8,9 px) |
+| img_0069 | 2 | 11,2 · 15,0 | dòng 2 (11,2 px) |
+| img_0078 | 1 (car) | 19,2 | không có |
+| img_0161 | 3 | 10,3 · 11,4 · 11,9 | dòng 2, 3, 4 |
+| img_0183 | 2 | 12,5 · 15,0 | không có |
+| img_0185, img_0092, … | 0 | – | – |
+
+**Đối chiếu với pipeline:**
+- **Cả 7 dòng `BOX_TINY`** của pipeline (5 ảnh, ngưỡng **12 px trên cạnh ngắn**) đều nằm trong 25 box mà CVAT lọc ra. Chiều rộng đo trong CVAT trùng tới 0,1 px với `short_px` trong `04_error_list_v2.csv`, nên hai bên đang nhìn đúng cùng một box.
+- 18 box còn lại có rộng **12–20 px**, nằm giữa ngưỡng 12 px của dự án và ngưỡng 20 px của slide. 17 box là `person` đứng xa, 1 box là `car` 19×20 px. Trên 2 ảnh đã mở (`img_0026`, `img_0030`) đó là người thật ở xa, box vừa khít, **không nên xoá**. Ngưỡng 20 px vì thế hợp để *xem* hơn là để *xoá hàng loạt* (`Remove filtered shapes`). Lý do giữ 12 px cho cảnh báo tự động: hạ ngưỡng xuống 20 px sẽ tăng số cảnh báo từ 7 lên 25 ở 20 ảnh này mà không thêm lỗi thật nào.
+- Lọc `height < 20` cho **0 box**. Các box nhỏ trong lô đều là người, có dạng đứng (hẹp, cao), nên pipeline đo theo **cạnh ngắn** là đúng hơn so với chỉ lọc một chiều.
+- **Điều CVAT cho thấy mà pipeline chỉ báo chung chung:** với `img_0030`, xem trên ảnh mới thấy box 9,8 px là người bị cắt ở mép trái sau `clip_box`. `BOX_TINY` chỉ nói "nhỏ", không nói "nhỏ vì bị cắt", và đó là lý do có check `box_aspect` ở trên. Trong phiên này tôi không sửa hay xoá box nào: cả 120 box vẫn có nguồn `file`, nên một bản export YOLO lúc này sẽ trùng với nhãn pipeline.
+
+**Về `can_review`:** người gán bật thuộc tính này cho box mà họ **không chắc**: vật bị che, quá nhỏ hoặc mờ, hoặc ranh giới car/truck mơ hồ, để vòng duyệt sau xem lại. Trong task này cả 120 box đều mang giá trị `false`, vì định dạng YOLO 1.1 không chở thuộc tính. Pipeline dùng thông tin tương tự ở các mã cảnh báo `POSSIBLE_*` (từ `second_opinion`) và điểm ưu tiên trong `05_review_queue.csv`, quyết định ảnh nào được người xem trước. Gate cũng đếm số ảnh còn cảnh báo chưa duyệt để chọn HOLD hay Release.
