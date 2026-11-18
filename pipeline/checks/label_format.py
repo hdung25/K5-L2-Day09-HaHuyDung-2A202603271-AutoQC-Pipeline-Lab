@@ -23,7 +23,58 @@ Gợi ý
 """
 from ..common import ERROR, WARN, Issue, iou_xywh, parse_yolo_line  # noqa: F401
 
+CHECK = "label_format"
+
+
+def _overflow(cx, cy, w, h):
+    """Mức tràn lớn nhất (>= 0) của 4 mép box ra ngoài [0, 1], đơn vị tỉ lệ ảnh."""
+    return max(0.0, -(cx - w / 2), (cx + w / 2) - 1.0, -(cy - h / 2), (cy + h / 2) - 1.0)
+
+
+def check_lines(stem, lines, n_classes, size, cfg):
+    """Kiểm một file nhãn. `lines` = [(số dòng gốc, nội dung)], `size` = (W, H) hoặc None."""
+    c = cfg["label_format"]
+    tol, min_px, max_frac, dup_iou = c["overflow_tol"], c["min_box_px"], c["max_box_frac"], c["dup_box_iou"]
+    issues, prev = [], []                      # prev: các box hợp lệ ở dòng TRƯỚC (lớp, box, số dòng)
+    for ln, text in lines:
+        try:
+            cls, cx, cy, w, h = parse_yolo_line(text)
+        except ValueError as e:
+            issues.append(Issue(CHECK, ERROR, "BAD_FORMAT", stem, f"dòng {ln} sai định dạng: {e}", ln, {"text": text.strip()[:80]}))
+            continue
+        if not 0 <= cls < n_classes:
+            issues.append(Issue(CHECK, ERROR, "BAD_CLASS_ID", stem, f"dòng {ln}: id lớp {cls} ngoài 0..{n_classes - 1}", ln, {"class_id": cls}))
+            continue
+        if w <= 0 or h <= 0:
+            issues.append(Issue(CHECK, ERROR, "BOX_ZERO", stem, f"dòng {ln}: box rộng/cao <= 0 (w={w}, h={h})", ln, {"w": w, "h": h}))
+            continue
+        box = (cx, cy, w, h)
+        over = _overflow(*box)
+        if over > tol:
+            issues.append(Issue(CHECK, ERROR, "BOX_OUT_OF_IMAGE", stem, f"dòng {ln}: box tràn ảnh {over:.4f} (> {tol})", ln,
+                                {"overflow": round(over, 6)}))
+        dup = next(((pl, iou) for pc, pb, pl in prev if pc == cls for iou in [iou_xywh(pb, box)] if iou > dup_iou), None)
+        if dup:
+            issues.append(Issue(CHECK, ERROR, "DUP_BOX", stem, f"dòng {ln} lặp dòng {dup[0]} (cùng lớp, IoU {dup[1]:.2f})", ln,
+                                {"of_line": dup[0], "iou": round(dup[1], 4)}))
+        if size:
+            short = min(w * size[0], h * size[1])
+            if short < min_px:
+                issues.append(Issue(CHECK, WARN, "BOX_TINY", stem, f"dòng {ln}: cạnh ngắn {short:.1f}px < {min_px}px", ln,
+                                    {"short_px": round(short, 2)}))
+        if w * h > max_frac:
+            issues.append(Issue(CHECK, WARN, "BOX_HUGE", stem, f"dòng {ln}: box phủ {w * h:.0%} ảnh (> {max_frac:.0%})", ln,
+                                {"area_frac": round(w * h, 4)}))
+        prev.append((cls, box, ln))
+    return issues
+
 
 def run(ds, cfg):
-    # TODO: duyệt từng file nhãn, từng dòng
-    raise NotImplementedError("check label_format chưa làm")
+    issues = []
+    n_classes = len(ds.classes)
+    for lf in ds.label_files():
+        stem = lf.stem
+        lines = ds.read_label_lines(stem) or []
+        size = ds.image_size(stem) if ds.image_path(stem) else None    # nhãn mồ côi / ảnh hỏng: bỏ qua BOX_TINY
+        issues.extend(check_lines(stem, lines, n_classes, size, cfg))
+    return issues
