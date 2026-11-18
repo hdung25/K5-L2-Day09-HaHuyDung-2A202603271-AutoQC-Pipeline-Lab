@@ -1,0 +1,4 @@
+check,severity,code,image,line,message,extra
+box_aspect,warn,BOX_ASPECT,img_0030,9,"dòng 9: box person 10x84px, tỉ lệ 8.6 > 8 (chạm mép ảnh)","{""ratio"": 8.59, ""w_px"": 9.8, ""h_px"": 84.3, ""at_edge"": true}"
+box_aspect,warn,BOX_ASPECT,img_0042,5,"dòng 5: box person 25x241px, tỉ lệ 9.6 > 8 (chạm mép ảnh)","{""ratio"": 9.58, ""w_px"": 25.1, ""h_px"": 240.8, ""at_edge"": true}"
+box_aspect,warn,BOX_ASPECT,img_0155,2,"dòng 2: box person 14x133px, tỉ lệ 9.8 > 8 (chạm mép ảnh)","{""ratio"": 9.84, ""w_px"": 13.5, ""h_px"": 133.2, ""at_edge"": true}"
