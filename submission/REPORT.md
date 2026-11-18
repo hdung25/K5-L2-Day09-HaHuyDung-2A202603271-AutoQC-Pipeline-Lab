@@ -78,7 +78,7 @@ Từ `02_error_list_v1` (TRƯỚC khi sửa; gồm cả lỗi cửa vào ở `01
 
 ## 5. Train: raw vs clean (tùy chọn, chấm riêng)
 
-Chạy trên Colab T4 bằng `notebooks/day09_train_compare.ipynb`: **yolo26n, 20 epoch, batch 16, imgsz 640, seed 0 và 1**, cùng val (`gold_val`, 40 ảnh) và cùng test (`data/test`, 100 ảnh nhãn người, 387 box). Chỉ khác dữ liệu train: `raw` = 224 ảnh gốc, `clean` = 202 ảnh của `clean_v1` (`manifest_sha1 801ca56e…`, `config_sha1 58d1755c…` khớp lần chạy pipeline). Bảng do `scripts/summarize_results.py` sinh (`submission/results/comparison.md`):
+Chạy trên Colab T4 bằng `notebooks/day09_train_compare.ipynb` (bản đã chạy, có đầu ra: `submission/results/day09_train_compare.ipynb`): **yolo26n, 20 epoch, batch 16, imgsz 640, seed 0 và 1**, cùng val (`gold_val`, 40 ảnh) và cùng test (`data/test`, 100 ảnh nhãn người, 387 box). Chỉ khác dữ liệu train: `raw` = 224 ảnh gốc, `clean` = 202 ảnh của `clean_v1` (`manifest_sha1 801ca56e…`, `config_sha1 58d1755c…` khớp lần chạy pipeline). Bảng do `scripts/summarize_results.py` sinh (`submission/results/comparison.md`):
 
 | biến thể | #ảnh train | số seed | mAP50 (TB ± độ lệch) | mAP50-95 | precision | recall |
 |---|---|---|---|---|---|---|
@@ -99,7 +99,7 @@ Giá trị từng seed (mAP50): raw 0.7256 / 0.7259; clean 0.7180 / 0.6832. AP50
 **Kết luận trung thực:** thí nghiệm **chưa cho thấy dữ liệu sau pipeline giúp model tốt hơn**; cũng **chưa đủ bằng chứng để nói nó tệ hơn**, vì phần chênh lệch tập trung ở lớp ít mẫu nhất và nhiễu theo seed. Không được viết "clean tốt hơn".
 
 **Giả thuyết giải thích và cách kiểm:**
-1. **`raw` được "nhìn trước" tập test.** Pipeline phát hiện **5 ảnh raw trùng ảnh test** (`img_0049, img_0101, img_0167, img_0174, img_0221` ↔ `test_033, 039, 044, 085, 009`). `raw` train trên chúng, `clean` thì không ⇒ điểm test của `raw` có thể bị thổi phồng. *Cách kiểm:* đánh giá lại `best.pt` của cả hai trên test **bỏ 5 ảnh đó** (`scripts/eval_without_leak.py`, ô thêm trong `HUONG_DAN_COLAB.md`); nếu khoảng cách thu hẹp, rò rỉ là một phần nguyên nhân.
+1. **`raw` được "nhìn trước" tập test.** Pipeline phát hiện **5 ảnh raw trùng ảnh test** (`img_0049, img_0101, img_0167, img_0174, img_0221` ↔ `test_033, 039, 044, 085, 009`). `raw` train trên chúng, `clean` thì không ⇒ điểm test của `raw` có thể bị thổi phồng. *Cách kiểm:* đánh giá lại `best.pt` của cả hai trên test **bỏ 5 ảnh đó** (`scripts/eval_without_leak.py`, chạy trên Colab ngay sau ô 6 khi còn `best.pt`); nếu khoảng cách thu hẹp, rò rỉ là một phần nguyên nhân.
 2. **Ranh giới car/truck thay đổi sau khi người duyệt.** Số box: car 122 → 101, truck 32 → 41, person 537 → 574 (raw → clean). 80 ảnh duyệt được thay bằng nhãn người kiểu COCO, nơi xe bán tải/van thường là *truck*. Lớp truck vốn ít mẫu và mơ hồ, nên chỉ cần dời ranh giới với ~10 box là AP truck biến động mạnh. *Cách kiểm:* xem AP truck theo seed và ma trận nhầm lẫn car↔truck trên test (`ultralytics val ... plots=True`); thêm biến thể `oracle` (nhãn người hoàn toàn) làm chặn trên.
 3. **`clean` vẫn chưa sạch hẳn và ít ảnh hơn.** Còn 38 ảnh có cảnh báo chưa duyệt (16 ảnh `LOOSE_BOX`, 11 ảnh `FALSE_POS`); 122 ảnh không được người xem vẫn mang nhãn máy. Đồng thời mất 22 ảnh (12 bản trùng không thêm thông tin, nhưng 3 ảnh nhỏ và 5 ảnh rò rỉ là ảnh thật). *Cách kiểm:* tăng ngân sách duyệt hoặc chạy `oracle`; so số box mỗi lớp giữa hai biến thể (đã có ở trên).
 4. **Lỗi cú pháp ít ảnh hưởng tới train.** Ultralytics tự bỏ ảnh hỏng và dòng nhãn hỏng (id lạ, `nan`) khi nạp `raw` ⇒ phần lớn lỗi bắt buộc mà pipeline sửa vốn không đi vào model; lợi ích của pipeline nằm ở **lỗi ngữ nghĩa và rò rỉ test**, những thứ mAP trên 100 ảnh khó đo. *Cách kiểm:* đọc cảnh báo "ignoring corrupt image/label" ở ô 6 của notebook.
@@ -107,14 +107,9 @@ Giá trị từng seed (mAP50): raw 0.7256 / 0.7259; clean 0.7180 / 0.6832. AP50
 
 **Việc tiếp theo:** chạy ≥ 5 seed mỗi biến thể để có độ lệch đáng tin; đánh giá trên test bỏ 5 ảnh rò rỉ; thêm `oracle`; duyệt nốt 38 ảnh còn cảnh báo rồi train lại.
 
-## 6. Quyết định và ghi chú AI
+## 6. Quyết định
 
-**(a) Quyết định cuối: HOLD** — dataset `clean_v1` không có lỗi bắt buộc nhưng chưa được phát hành. Để thành **Release** cần đưa tỉ lệ ảnh còn cảnh báo chưa duyệt xuống < 10 %, tức ≤ 20/202 ảnh: **duyệt thêm ít nhất 18 trong 38 ảnh còn cảnh báo** (ưu tiên 11 ảnh `FALSE_POS` và 16 ảnh `LOOSE_BOX` ở đuôi `05_review_queue.csv`), hoặc tăng ngân sách vòng duyệt lên ~100 ảnh. Không hạ `second_opinion.conf` để "lách" gate (mục 3). Nếu một vòng duyệt sau để lại lỗi bắt buộc (nhãn mới hỏng), pipeline tự sửa lại một vòng (`03b_fixes_after_review.csv`) và gate vẫn chặn nếu còn.
-
-**(b) Ghi chú AI.** Có dùng AI (Claude Code) để viết 4 module và phân tích.
-- *Prompt chính:* "đọc docstring + test của từng stub, viết đúng đặc tả, không đọc đáp án, không sửa file đã ghim, ngưỡng lấy từ `cfg`".
-- *Cách kiểm:* chạy `pytest` sau từng module (79/79 xanh), tự viết thêm 12 ca khó trong `tests/test_extra_cases.py` (dòng dính 2 lỗi, dòng trống/CRLF, nhiều dự đoán/ảnh, chặn sửa `data/raw`), chạy pipeline 2 lần so byte, mở ảnh bằng `viz_labels.py`, đọc lướt diff xem có xoá/ghi đè file nào ngoài `ds`.
-- *Một lần AI sai:* (1) trong ca test tự viết, AI kỳ vọng một dự đoán cùng lớp với IoU ≈ 0,48 là "im lặng", nhưng theo đặc tả (< `iou_loose` 0,6 trong cấu hình test) phải là `POSSIBLE_LOOSE_BOX` — sửa test, không sửa code; (2) khi phân tích calibration, AI ban đầu khẳng định `conf = 0,6` "không mất recall ở mã nào", đối chiếu bảng sweep thì `LOOSE_BOX` rơi 0,40 → 0,20 — đã ghi rõ đánh đổi này ở mục 3.
+**Quyết định cuối: HOLD** — dataset `clean_v1` không có lỗi bắt buộc nhưng chưa được phát hành. Để thành **Release** cần đưa tỉ lệ ảnh còn cảnh báo chưa duyệt xuống < 10 %, tức ≤ 20/202 ảnh: **duyệt thêm ít nhất 18 trong 38 ảnh còn cảnh báo** (ưu tiên 11 ảnh `FALSE_POS` và 16 ảnh `LOOSE_BOX` ở đuôi `05_review_queue.csv`), hoặc tăng ngân sách vòng duyệt lên ~100 ảnh. Không hạ `second_opinion.conf` để "lách" gate (mục 3). Nếu một vòng duyệt sau để lại lỗi bắt buộc (nhãn mới hỏng), pipeline tự sửa lại một vòng (`03b_fixes_after_review.csv`) và gate vẫn chặn nếu còn.
 
 ## Thưởng: check mới `box_aspect` (có test)
 
@@ -150,6 +145,13 @@ Giá trị từng seed (mAP50): raw 0.7256 / 0.7259; clean 0.7180 / 0.6832. AP50
 - **Cả 7 dòng `BOX_TINY`** của pipeline (5 ảnh, ngưỡng **12 px trên cạnh ngắn**) đều nằm trong 25 box mà CVAT lọc ra. Chiều rộng đo trong CVAT trùng tới 0,1 px với `short_px` trong `04_error_list_v2.csv`, nên hai bên đang nhìn đúng cùng một box.
 - 18 box còn lại có rộng **12–20 px**, nằm giữa ngưỡng 12 px của dự án và ngưỡng 20 px của slide. 17 box là `person` đứng xa, 1 box là `car` 19×20 px. Trên 2 ảnh đã mở (`img_0026`, `img_0030`) đó là người thật ở xa, box vừa khít, **không nên xoá**. Ngưỡng 20 px vì thế hợp để *xem* hơn là để *xoá hàng loạt* (`Remove filtered shapes`). Lý do giữ 12 px cho cảnh báo tự động: hạ ngưỡng xuống 20 px sẽ tăng số cảnh báo từ 7 lên 25 ở 20 ảnh này mà không thêm lỗi thật nào.
 - Lọc `height < 20` cho **0 box**. Các box nhỏ trong lô đều là người, có dạng đứng (hẹp, cao), nên pipeline đo theo **cạnh ngắn** là đúng hơn so với chỉ lọc một chiều.
-- **Điều CVAT cho thấy mà pipeline chỉ báo chung chung:** với `img_0030`, xem trên ảnh mới thấy box 9,8 px là người bị cắt ở mép trái sau `clip_box`. `BOX_TINY` chỉ nói "nhỏ", không nói "nhỏ vì bị cắt", và đó là lý do có check `box_aspect` ở trên. Trong phiên này tôi không sửa hay xoá box nào: cả 120 box vẫn có nguồn `file`, nên một bản export YOLO lúc này sẽ trùng với nhãn pipeline.
+- **Điều CVAT cho thấy mà pipeline chỉ báo chung chung:** với `img_0030`, xem trên ảnh mới thấy box 9,8 px là người bị cắt ở mép trái sau `clip_box`. `BOX_TINY` chỉ nói "nhỏ", không nói "nhỏ vì bị cắt", và đó là lý do có check `box_aspect` ở trên. Tôi không sửa hay xoá box nào (cả 120 box vẫn có nguồn `file`). Bản export YOLO 1.1 từ CVAT được lưu ở `submission/cvat/cvat_yolo11_autoqc20.zip` (`obj.names`, `obj.data`, `train.txt`, 20 file `obj_train_data/*.txt`, tổng 120 box). Nó trùng với nhãn pipeline sau autofix, ví dụ dòng 6 của `img_0030.txt` là `1 0.007664 0.460055 0.015328 0.184442`, đúng box mà `03_fixes.csv` đã `clip_box` (sai khác chỉ do làm tròn).
 
 **Về `can_review`:** người gán bật thuộc tính này cho box mà họ **không chắc**: vật bị che, quá nhỏ hoặc mờ, hoặc ranh giới car/truck mơ hồ, để vòng duyệt sau xem lại. Trong task này cả 120 box đều mang giá trị `false`, vì định dạng YOLO 1.1 không chở thuộc tính. Pipeline dùng thông tin tương tự ở các mã cảnh báo `POSSIBLE_*` (từ `second_opinion`) và điểm ưu tiên trong `05_review_queue.csv`, quyết định ảnh nào được người xem trước. Gate cũng đếm số ảnh còn cảnh báo chưa duyệt để chọn HOLD hay Release.
+
+## Ghi chú dùng AI
+
+Có dùng AI (Claude Code) để viết 4 module và phân tích.
+- *Prompt chính:* "đọc docstring + test của từng stub, viết đúng đặc tả, không đọc đáp án, không sửa file đã ghim, ngưỡng lấy từ `cfg`".
+- *Cách kiểm:* chạy `pytest` sau từng module (79/79 xanh), tự viết thêm 12 ca khó trong `tests/test_extra_cases.py` (dòng dính 2 lỗi, dòng trống/CRLF, nhiều dự đoán/ảnh, chặn sửa `data/raw`), chạy pipeline 2 lần so byte, mở ảnh bằng `viz_labels.py`, đọc lướt diff xem có xoá/ghi đè file nào ngoài `ds`.
+- *Một lần AI sai:* (1) trong ca test tự viết, AI kỳ vọng một dự đoán cùng lớp với IoU ≈ 0,48 là "im lặng", nhưng theo đặc tả (< `iou_loose` 0,6 trong cấu hình test) phải là `POSSIBLE_LOOSE_BOX` — sửa test, không sửa code; (2) khi phân tích calibration, AI ban đầu khẳng định `conf = 0,6` "không mất recall ở mã nào", đối chiếu bảng sweep thì `LOOSE_BOX` rơi 0,40 → 0,20 — đã ghi rõ đánh đổi này ở mục 3.
